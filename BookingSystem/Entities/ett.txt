@@ -1,0 +1,489 @@
+using BookingSystem.Entities.Enums;
+
+namespace BookingSystem.Entities;
+
+public class Booking
+{
+    public Guid Id { get; set; }
+
+    public Guid UserId { get; set; }
+
+    public Guid StoreId { get; set; }
+
+    public Guid TimeSlotId { get; set; }
+
+    public Guid PetId { get; set; }      
+    
+   // <-- Thêm trường này
+
+    public DateOnly BookingDate { get; set; }
+
+    public BookingStatus Status { get; set; } = BookingStatus.Active;
+
+    public string? Notes { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public DateTime? CancelledAt { get; set; }
+
+    public string? CancellationReason { get; set; }
+
+    public Guid? PlatformVoucherId { get; set; }
+    public Guid? StoreVoucherId { get; set; }
+
+    public decimal? PlatformVoucherDiscount { get; set; }  // Số tiền giảm từ voucher toàn sàn
+    public decimal? StoreVoucherDiscount { get; set; }
+
+    public decimal TotalPrice { get; set; }
+
+    // Navigation
+    public User User { get; set; } = null!;
+    public Store Store { get; set; } = null!;
+    public TimeSlot TimeSlot { get; set; } = null!;
+    public Pet Pet { get; set; } = null!;
+    public PlatformVoucher? PlatformVoucher { get; set; }
+    public StoreVoucher? StoreVoucher { get; set; }
+    public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+
+}
+
+using BookingSystem.Entities.Enums;
+using System;
+
+namespace BookingSystem.Entities;
+
+public class BookingService
+{
+    public Guid BookingId { get; set; }
+    public Guid ServiceId { get; set; }
+
+    public decimal Price { get; set; } // lưu giá tại thời điểm đặt
+
+    // Navigation
+    public Booking Booking { get; set; } = null!;
+    public Service Service { get; set; } = null!;
+}
+
+using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+public class Breed
+{
+    public Guid Id { get; set; }
+
+    public Guid SpeciesId { get; set; }
+
+    public string Name { get; set; } = null!;
+    // Poodle, Husky, Golden Retriever,...
+
+    public DateTime CreatedAt { get; set; }
+
+    // Navigation
+    public Species Species { get; set; } = null!;
+    public ICollection<Pet> Pets { get; set; } = new List<Pet>();
+}
+
+
+
+using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+public class Pet
+{
+    public Guid Id { get; set; }
+
+    public Guid UserId { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public Guid SpeciesId { get; set; }
+
+    public Guid? BreedId { get; set; }
+
+    public string? Gender { get; set; }
+
+    public DateOnly? DateOfBirth { get; set; }
+
+    public string? Color { get; set; }
+
+    public double? Weight { get; set; }
+
+    public string? Notes { get; set; }
+
+    public string? ProfileImageUrl { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation
+    public User User { get; set; } = null!;
+    public Species Species { get; set; } = null!;
+    public Breed? Breed { get; set; }
+
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+}
+
+using BookingSystem.Entities.Enums; // nếu bạn có enum cho loại giảm giá
+using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+public class PlatformVoucher
+{
+	public Guid Id { get; set; }
+
+	public string Code { get; set; } = null!;           // mã voucher người dùng nhập, ví dụ: "WELCOME2025", "PETLOVE30"
+
+	public string? Name { get; set; }                   // Tên hiển thị: "Khuyến mãi chào mừng năm mới"
+	public string? Description { get; set; }            // Mô tả chi tiết
+
+	public VoucherDiscountType DiscountType { get; set; } // Percent hoặc Fixed
+	public decimal DiscountValue { get; set; }          // 30 (30%) hoặc 50000 (50k)
+
+	public decimal? MinOrderValue { get; set; }         // Đơn tối thiểu để áp dụng (null = không giới hạn)
+	public decimal? MaxDiscountAmount { get; set; }     // Giới hạn giảm tối đa (ví dụ max 200k khi giảm %)
+
+	public int? UsageLimitPerUser { get; set; }         // Số lần dùng tối đa / user (null = không giới hạn)
+	public int? TotalUsageLimit { get; set; }           // Tổng số lần dùng toàn hệ thống (null = vô hạn)
+
+	public DateTime StartDate { get; set; }
+	public DateTime? EndDate { get; set; }              // null = không hết hạn
+
+	public bool IsActive { get; set; } = true;
+
+	public DateTime CreatedAt { get; set; }
+	public DateTime? UpdatedAt { get; set; }
+	public Guid? CreatedByAdminId { get; set; }         // Ai tạo (admin)
+
+	// Navigation
+	public User? CreatedByAdmin { get; set; }
+	public ICollection<UsedVoucher> UsedVouchers { get; set; } = new List<UsedVoucher>();
+}
+
+using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+
+public class Review
+{
+    public Guid Id { get; set; }
+    public Guid StoreId { get; set; }
+    public Guid UserId { get; set; }
+    public decimal Rating { get; set; } // Số sao (1.0 đến 5.0)
+    public string? Comment { get; set; } // Comment đánh giá
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation
+    public Store Store { get; set; } = null!;
+    public User User { get; set; } = null!;
+}
+
+
+using BookingSystem.Entities.Enums;
+using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+public class Service
+{
+    public Guid Id { get; set; }
+
+    public Guid StoreId { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public string? Description { get; set; }
+
+    public decimal Price { get; set; }
+
+    public int DurationMinutes { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    public Store Store { get; set; } = null!;
+
+    public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+}using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+public class Species
+{
+    public Guid Id { get; set; }
+
+    public string Name { get; set; } = null!;
+    // Dog, Cat, Rabbit,...
+
+    public DateTime CreatedAt { get; set; }
+
+    // Navigation
+    public ICollection<Breed> Breeds { get; set; } = new List<Breed>();
+}
+
+namespace BookingSystem.Entities;
+
+public class Store
+{
+    public Guid Id { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public string Address { get; set; } = null!;
+
+    public decimal? Latitude { get; set; }
+
+    public decimal? Longitude { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public decimal AverageRating { get; set; } = 0.0m; // Trung bình số sao (tính từ Reviews)
+
+    public int ReviewCount { get; set; } = 0; // Số lượng review
+    public int TotalCompletedBookings { get; set; } = 0;  // <-- Thêm dòng này
+    // Navigation
+    public ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public ICollection<StoreImage> Images { get; set; } = new List<StoreImage>();
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<Service> Services { get; set; } = new List<Service>();
+    public ICollection<StoreSpecies> StoreSpecies { get; set; } = new List<StoreSpecies>();
+    public ICollection<StoreCategoryMapping> StoreCategories { get; set; } = new List<StoreCategoryMapping>();
+}
+
+using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+public class StoreCategory
+{
+    public Guid Id { get; set; }
+
+    public string Name { get; set; } = null!;
+    // Spa, Hotel, Daycare, Dog Walking,...
+
+    public string? Description { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    // Navigation
+    public ICollection<StoreCategoryMapping> StoreCategories { get; set; } = new List<StoreCategoryMapping>();
+}
+
+using System;
+
+namespace BookingSystem.Entities;
+
+public class StoreCategoryMapping
+{
+    public Guid StoreId { get; set; }
+
+    public Guid CategoryId { get; set; }
+
+    // Navigation
+    public Store Store { get; set; } = null!;
+    public StoreCategory Category { get; set; } = null!;
+}
+
+using System;
+
+namespace BookingSystem.Entities;
+
+public class StoreImage
+{
+    public Guid Id { get; set; }
+    public Guid StoreId { get; set; }
+    public string ImageUrl { get; set; } = null!; // URL của ảnh (ví dụ: "https://storage.example.com/store1/thumbnail.jpg")
+    public bool IsThumbnail { get; set; } = false; // True nếu là thumbnail chính
+    public int Order { get; set; } = 0; // Thứ tự hiển thị (0 là cao nhất)
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation
+    public Store Store { get; set; } = null!;
+}
+
+using System;
+
+namespace BookingSystem.Entities;
+
+public class StoreSpecies
+{
+    public Guid StoreId { get; set; }
+
+    public Guid SpeciesId { get; set; }
+
+    // Navigation
+    public Store Store { get; set; } = null!;
+    public Species Species { get; set; } = null!;
+}
+
+using BookingSystem.Entities.Enums;
+using System;
+using System.Collections.Generic;
+
+namespace BookingSystem.Entities;
+
+public class StoreVoucher
+{
+    public Guid Id { get; set; }
+
+    public Guid StoreId { get; set; }                   // Voucher thuộc cửa hàng nào
+
+    public string Code { get; set; } = null!;           // Mã riêng của store, ví dụ: "PETCARE10", "GROOMING20"
+
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+
+    public VoucherDiscountType DiscountType { get; set; } // Percent / Fixed
+    public decimal DiscountValue { get; set; }
+
+    public decimal? MinOrderValue { get; set; }
+    public decimal? MaxDiscountAmount { get; set; }
+
+    public int? UsageLimitPerUser { get; set; }         // Số lần / user
+    public int? TotalUsageLimit { get; set; }           // Tổng số lần dùng cho voucher này
+
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    // Một số store có thể giới hạn voucher chỉ áp dụng cho dịch vụ nhất định
+    public Guid? ApplicableServiceId { get; set; }      // null = áp dụng tất cả dịch vụ của store
+    public Guid? ApplicableSpeciesId { get; set; }      // null = tất cả loài thú
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public Guid? CreatedByStoreOwnerId { get; set; }    // Ai tạo (thường là owner hoặc staff của store)
+
+    // Navigation
+    public Store Store { get; set; }
+    public Service? ApplicableService { get; set; }
+    public Species? ApplicableSpecies { get; set; }
+    public User? CreatedByStoreOwner { get; set; }
+    public ICollection<UsedVoucher> UsedVouchers { get; set; } = new List<UsedVoucher>();
+}
+
+namespace BookingSystem.Entities;
+
+public class TimeSlot
+{
+    public Guid Id { get; set; }
+
+    public Guid StoreId { get; set; }
+
+    public TimeSpan StartTime { get; set; }
+
+    public TimeSpan EndTime { get; set; }
+
+    public int Capacity { get; set; } = 1;
+
+    public bool IsActive { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation
+    public Store Store { get; set; } = null!;
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+}using System;
+
+namespace BookingSystem.Entities;
+
+public class TimeSlotOverride
+{
+    public Guid Id { get; set; }
+
+    public Guid StoreId { get; set; }               // Để query nhanh theo cửa hàng
+    public Guid? TimeSlotId { get; set; }           // null = áp dụng cho TOÀN BỘ NGÀY (full day)
+
+    public DateOnly Date { get; set; }              // Ngày áp dụng override
+
+    // Các trường override (chỉ có ý nghĩa khi TimeSlotId != null, trừ IsActive khi full day)
+    public TimeSpan? StartTime { get; set; }        // null = giữ nguyên template
+    public TimeSpan? EndTime { get; set; }
+    public int? Capacity { get; set; }              // null = giữ nguyên, nếu set thì override
+    public bool? IsActive { get; set; }             // null = giữ nguyên, true/false để bật/tắt
+
+    // Đặc biệt cho full day closure (khi TimeSlotId == null)
+    public bool IsFullDayClosure { get; set; } = false;  // true = đóng cửa hoàn toàn ngày đó
+
+    // Thông tin bổ sung (audit & UX)
+    public string? Reason { get; set; }             // "Đóng để vệ sinh", "Nhận thêm khách gấp", "Nghỉ lễ",...
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Guid CreatedByUserId { get; set; }       // Ai tạo override (chủ tiệm / nhân viên)
+
+    // Navigation
+    public Store Store { get; set; } = null!;
+    public TimeSlot? TimeSlot { get; set; }         // optional, chỉ khi TimeSlotId != null
+}
+
+using System;
+
+namespace BookingSystem.Entities;
+
+public class UsedVoucher
+{
+    public Guid Id { get; set; }
+
+    public Guid? PlatformVoucherId { get; set; }       // null nếu là store voucher
+    public Guid? StoreVoucherId { get; set; }          // null nếu là platform voucher
+
+    public Guid UserId { get; set; }                   // Ai dùng
+    public Guid BookingId { get; set; }                // Đơn booking nào đã áp dụng
+
+    public decimal DiscountApplied { get; set; }       // Số tiền thực tế được giảm
+
+    public DateTime UsedAt { get; set; }
+
+    // Navigation
+    public PlatformVoucher? PlatformVoucher { get; set; }
+    public StoreVoucher? StoreVoucher { get; set; }
+    public User User { get; set; } = null!;
+    public Booking Booking { get; set; } = null!;
+}
+
+using BookingSystem.Entities.Enums;
+
+namespace BookingSystem.Entities;
+
+public class User
+{
+    public Guid Id { get; set; }
+
+    public string FullName { get; set; } = null!;
+
+    public string Email { get; set; } = null!;
+
+    public string? PhoneNumber { get; set; }
+
+    public string PasswordHash { get; set; } = null!;
+
+    public UserRole Role { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<Pet> Pets { get; set; } = new List<Pet>();
+}

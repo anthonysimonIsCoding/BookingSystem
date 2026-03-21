@@ -40,3 +40,18 @@
 .read-the-docs {
   color: #888;
 }
+
+.maplibregl-map {
+    overflow: visible !important;
+}
+
+.maplibregl-popup {
+    max-width: none !important;
+    z-index: 9999;
+}
+
+.maplibregl-popup-content {
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}

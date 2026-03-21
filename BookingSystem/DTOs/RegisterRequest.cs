@@ -1,3 +1,4 @@
+using System;
 namespace BookingSystem.DTOs;
 
 public class RegisterRequest

@@ -22,4 +22,6 @@ public class User
 
     // Navigation
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<Pet> Pets { get; set; } = new List<Pet>();
 }

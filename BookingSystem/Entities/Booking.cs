@@ -12,6 +12,10 @@ public class Booking
 
     public Guid TimeSlotId { get; set; }
 
+    public Guid PetId { get; set; }      
+    
+   // <-- Thêm trường này
+
     public DateOnly BookingDate { get; set; }
 
     public BookingStatus Status { get; set; } = BookingStatus.Active;
@@ -26,8 +30,21 @@ public class Booking
 
     public string? CancellationReason { get; set; }
 
+    public Guid? PlatformVoucherId { get; set; }
+    public Guid? StoreVoucherId { get; set; }
+
+    public decimal? PlatformVoucherDiscount { get; set; }  // Số tiền giảm từ voucher toàn sàn
+    public decimal? StoreVoucherDiscount { get; set; }
+
+    public decimal TotalPrice { get; set; }
+
     // Navigation
     public User User { get; set; } = null!;
     public Store Store { get; set; } = null!;
     public TimeSlot TimeSlot { get; set; } = null!;
+    public Pet Pet { get; set; } = null!;
+    public PlatformVoucher? PlatformVoucher { get; set; }
+    public StoreVoucher? StoreVoucher { get; set; }
+    public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+
 }
