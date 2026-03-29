@@ -50,6 +50,7 @@ namespace BookingSystem.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     AverageRating = table.Column<decimal>(type: "decimal(3,1)", precision: 3, scale: 1, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     ReviewCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     TotalCompletedBookings = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
                 },
@@ -104,8 +105,9 @@ namespace BookingSystem.Migrations
                     StoreId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    Price = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     DurationMinutes = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -317,6 +319,27 @@ namespace BookingSystem.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ServiceOptionGroups",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ServiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    IsRequired = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceOptionGroups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ServiceOptionGroups_Services_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "Services",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "StoreVouchers",
                 columns: table => new
                 {
@@ -404,6 +427,28 @@ namespace BookingSystem.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ServiceOptions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OptionGroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    DurationMinutes = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceOptions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ServiceOptions_ServiceOptionGroups_OptionGroupId",
+                        column: x => x.OptionGroupId,
+                        principalTable: "ServiceOptionGroups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Bookings",
                 columns: table => new
                 {
@@ -465,26 +510,28 @@ namespace BookingSystem.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookingServices",
+                name: "BookingServiceItems",
                 columns: table => new
                 {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BookingId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ServiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false)
+                    ServiceOptionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    DurationMinutes = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BookingServices", x => new { x.BookingId, x.ServiceId });
+                    table.PrimaryKey("PK_BookingServiceItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BookingServices_Bookings_BookingId",
+                        name: "FK_BookingServiceItems_Bookings_BookingId",
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_BookingServices_Services_ServiceId",
-                        column: x => x.ServiceId,
-                        principalTable: "Services",
+                        name: "FK_BookingServiceItems_ServiceOptions_ServiceOptionId",
+                        column: x => x.ServiceOptionId,
+                        principalTable: "ServiceOptions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -561,9 +608,14 @@ namespace BookingSystem.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BookingServices_ServiceId",
-                table: "BookingServices",
-                column: "ServiceId");
+                name: "IX_BookingServiceItems_BookingId",
+                table: "BookingServiceItems",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BookingServiceItems_ServiceOptionId",
+                table: "BookingServiceItems",
+                column: "ServiceOptionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Breeds_SpeciesId_Name",
@@ -606,6 +658,16 @@ namespace BookingSystem.Migrations
                 name: "IX_Reviews_UserId",
                 table: "Reviews",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceOptionGroups_ServiceId",
+                table: "ServiceOptionGroups",
+                column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceOptions_OptionGroupId",
+                table: "ServiceOptions",
+                column: "OptionGroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Services_StoreId",
@@ -713,7 +775,7 @@ namespace BookingSystem.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "BookingServices");
+                name: "BookingServiceItems");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
@@ -734,10 +796,16 @@ namespace BookingSystem.Migrations
                 name: "UsedVouchers");
 
             migrationBuilder.DropTable(
+                name: "ServiceOptions");
+
+            migrationBuilder.DropTable(
                 name: "StoreCategories");
 
             migrationBuilder.DropTable(
                 name: "Bookings");
+
+            migrationBuilder.DropTable(
+                name: "ServiceOptionGroups");
 
             migrationBuilder.DropTable(
                 name: "Pets");

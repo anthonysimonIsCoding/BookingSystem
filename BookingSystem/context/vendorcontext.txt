@@ -1,0 +1,108 @@
+PROMPT TỔNG (DÙNG LÀM CONTEXT GỐC)
+
+Tôi đang xây dựng hệ thống Pet Shop Multi-Vendor với:
+
+Frontend: React
+Backend: .NET + Entity Framework Core
+
+Hiện tại tôi cần thiết kế và triển khai Vendor Dashboard (ServiceProvider role).
+
+Một ServiceProvider sẽ có 3 module chính:
+
+1. Dashboard
+
+Bao gồm các section:
+
+Hàng 1 – Thống kê tổng quan:
+
+Tổng số đơn hàng
+Số đơn chưa hoàn thành
+Tổng doanh thu
+Số sao trung bình của cửa hàng
+
+Hàng 2 – Top Services:
+
+Danh sách các service được đặt nhiều nhất
+Thông tin gồm: STT, tên service, giá service
+
+Hàng 3 – Customer Reviews:
+
+Danh sách đánh giá từ khách hàng
+Bao gồm: số sao, nội dung comment, tên khách hàng, tên pet
+2. Quản lý đơn hàng
+
+Bao gồm 2 chức năng:
+
+2.1. Quản lý theo tuần (Weekly Calendar View):
+
+Hiển thị dạng lịch tuần (giống timetable)
+Mỗi timeslot hiển thị số lượng đơn (ví dụ: "3 đơn")
+Khi click vào timeslot:
+Hiển thị modal danh sách đơn
+Thông tin gồm:
+Tên pet
+Tên khách hàng
+Service đã đặt
+Trạng thái đơn hàng
+
+2.2. Quản lý đơn hàng dạng danh sách:
+
+Danh sách tất cả đơn hàng
+Click vào đơn → vào trang chi tiết đơn hàng
+
+Chi tiết đơn hàng bao gồm:
+
+Thông tin pet
+Service đã đặt
+Trạng thái đơn hàng
+
+Luồng trạng thái:
+
+Pending → Received → Caring → WaitingPickup → Completed
+Có thể chuyển sang Cancelled (khách hủy)
+
+Rule quan trọng:
+
+Chỉ được cập nhật trạng thái khi đã tới đúng thời gian của timeslot (ngày + giờ)
+KHÔNG được update sớm hơn
+Riêng Cancelled có thể xảy ra trước
+3. Quản lý thông tin cửa hàng
+
+Bao gồm:
+
+3.1. Thông tin cửa hàng:
+
+Hình ảnh
+Tên
+Địa chỉ
+
+3.2. Quản lý Timeslot:
+
+Timeslot cố định
+Override Timeslot
+
+Override Timeslot:
+
+isFullDayClosure = true → đóng cả ngày
+isFullDayClosure = false:
+Chọn timeslot cần override
+Có thể:
+Thay đổi thời gian
+Thay đổi capacity
+Bắt buộc có lý do thay đổi
+
+3.3. Quản lý Service:
+
+CRUD các service cửa hàng cung cấp
+
+⚠️ Yêu cầu:
+
+Hãy ghi nhớ toàn bộ context này
+KHÔNG triển khai tất cả cùng lúc
+Chỉ thực hiện khi tôi yêu cầu từng phần cụ thể
+Khi trả lời, hãy:
+Phân tích logic rõ ràng
+Đề xuất design (FE + BE nếu cần)
+Ưu tiên clean architecture, scalable
+
+Tôi sẽ cung cấp thêm context hệ thống của tôi ở các bước tiếp theo.

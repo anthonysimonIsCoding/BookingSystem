@@ -2,7 +2,10 @@
 
 public enum BookingStatus : byte
 {
-    Active = 0,
-    Cancelled = 1,
-    Completed = 2
+    Pending = 0,          // mới đặt
+    Received = 1,         // đã nhận pet
+    Caring = 2,           // đang chăm sóc
+    WaitingPickup = 3,    // xong, đợi đón
+    Completed = 4,        // đã đón
+    Cancelled = 5         // bị cancel
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import dayjs from "dayjs";
 
 interface TimeSlot {
     id: string;
@@ -9,51 +10,58 @@ interface TimeSlot {
     isAvailable: boolean;
     isOverridden?: boolean;
     overrideReason?: string | null;
-    isDisabledByOverride?: boolean;  // field mới từ backend (tùy chọn)
+    isDisabledByOverride?: boolean;
 }
 
 interface TimeSlotCardProps {
     slot: TimeSlot;
     selectedDate: string;
     onBook: () => void;
+    disabled?: boolean;           // ← Prop mới từ StoreDetailPage
 }
 
-const TimeSlotCard: React.FC<TimeSlotCardProps> = ({ slot, onBook }) => {
-    const isDisabled = !slot.isAvailable;
-    const hasOverride = slot.isOverridden || slot.isDisabledByOverride || false;
-    const showReason = hasOverride && slot.overrideReason;
+const TimeSlotCard: React.FC<TimeSlotCardProps> = ({
+    slot,
+    selectedDate,
+    onBook,
+    disabled = false,
+}) => {
+    // Kiểm tra slot đã qua giờ (dùng client time + serverTime đồng bộ)
+    const isPast = selectedDate === dayjs().format("YYYY-MM-DD") &&
+        dayjs(`${selectedDate} ${slot.startTime}`).isBefore(dayjs());
 
-    let backgroundColor = "#ffffff";
-    let borderColor = "#d9d9d9";
-    let textColor = "#000000";
-    let cursorStyle = "pointer";
+    const effectiveDisabled = disabled || isPast || !slot.isAvailable || !!slot.isDisabledByOverride;
 
-    if (isDisabled) {
-        backgroundColor = "#f0f2f5";      // xám nhạt
-        borderColor = "#d9d9d9";
-        textColor = "#8c8c8c";
-        cursorStyle = "not-allowed";
-    } else if (hasOverride) {
-        backgroundColor = "#fffbe6";      // vàng nhạt cho override bình thường
-        borderColor = "#ffe58f";
+    let statusText = "";
+    let statusColor = "#8c8c8c";
+
+    if (isPast) {
+        statusText = "Đã qua giờ";
+        statusColor = "#ff4d4f";
+    } else if (!slot.isAvailable) {
+        statusText = slot.remainingCapacity <= 0 ? "Hết chỗ" : "Tạm ngưng";
+        statusColor = "#ff4d4f";
+    } else if (slot.isDisabledByOverride) {
+        statusText = "Tạm ngưng";
+        statusColor = "#fa8c16";
     }
 
     return (
         <div
-            onClick={() => !isDisabled && onBook()}
+            onClick={() => !effectiveDisabled && onBook()}
             style={{
-                border: `1px solid ${borderColor}`,
+                border: `1px solid ${effectiveDisabled ? "#d9d9d9" : "#d9d9d9"}`,
                 borderRadius: 12,
                 padding: "16px 20px",
-                backgroundColor,
+                backgroundColor: effectiveDisabled ? "#f0f2f5" : "#ffffff",
                 textAlign: "center",
-                cursor: cursorStyle,
+                cursor: effectiveDisabled ? "not-allowed" : "pointer",
                 transition: "all 0.2s",
-                boxShadow: hasOverride ? "0 2px 8px rgba(250, 173, 20, 0.15)" : "none",
-                opacity: isDisabled ? 0.7 : 1,
+                opacity: effectiveDisabled ? 0.75 : 1,
+                boxShadow: slot.isOverridden ? "0 2px 8px rgba(250, 173, 20, 0.15)" : "none",
             }}
         >
-            <h3 style={{ margin: "0 0 8px", fontSize: 18, color: textColor }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, color: effectiveDisabled ? "#8c8c8c" : "#000" }}>
                 {slot.startTime} – {slot.endTime}
             </h3>
 
@@ -61,48 +69,28 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({ slot, onBook }) => {
                 Còn <strong>{slot.remainingCapacity}</strong> / {slot.capacity} chỗ
             </div>
 
-            {/* Luôn hiển thị trạng thái nếu disable */}
-            {isDisabled && (
+            {effectiveDisabled && (
                 <div style={{
-                    color: "#ff4d4f",
+                    color: statusColor,
                     fontSize: 14,
-                    fontWeight: 500,
-                    marginBottom: showReason ? 4 : 0
+                    fontWeight: 600,
+                    marginTop: 8,
                 }}>
-                    {slot.isDisabledByOverride ? "Tạm ngưng" : "Hết chỗ"}
+                    {statusText}
                 </div>
             )}
 
-            {/* Hiển thị lý do nếu có */}
-            {showReason && (
-                <div
-                    style={{
-                        marginTop: 8,
-                        fontSize: 13,
-                        color: isDisabled ? "#ff7875" : "#fa8c16",
-                        fontStyle: "italic",
-                        background: isDisabled
-                            ? "rgba(255, 77, 79, 0.08)"
-                            : "rgba(250, 173, 20, 0.08)",
-                        padding: "4px 8px",
-                        borderRadius: 6,
-                    }}
-                >
+            {slot.overrideReason && (
+                <div style={{
+                    marginTop: 8,
+                    fontSize: 13,
+                    color: "#fa8c16",
+                    fontStyle: "italic",
+                    background: "rgba(250, 173, 20, 0.08)",
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                }}>
                     Lý do: {slot.overrideReason}
-                </div>
-            )}
-
-            {/* Fallback nếu override nhưng không có reason */}
-            {hasOverride && !showReason && (
-                <div
-                    style={{
-                        marginTop: 8,
-                        fontSize: 13,
-                        color: "#8c8c8c",
-                        fontStyle: "italic",
-                    }}
-                >
-                    {isDisabled ? "Slot bị tạm ngưng" : "Có thay đổi đặc biệt"}
                 </div>
             )}
         </div>

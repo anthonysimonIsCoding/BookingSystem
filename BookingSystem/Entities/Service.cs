@@ -18,9 +18,12 @@ public class Service
 
     public int DurationMinutes { get; set; }
 
+    public ServiceType Type { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public Store Store { get; set; } = null!;
 
-    public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+    public ICollection<ServiceOptionGroup> OptionGroups { get; set; } = new List<ServiceOptionGroup>();
+
 }

@@ -14,6 +14,8 @@ public class StoreCategory
 
     public DateTime CreatedAt { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     // Navigation
     public ICollection<StoreCategoryMapping> StoreCategories { get; set; } = new List<StoreCategoryMapping>();
 }

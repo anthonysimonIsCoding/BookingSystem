@@ -25,7 +25,7 @@ public class TimeSlotsController : ControllerBase
     {
         var targetDate = date ?? DateOnly.FromDateTime(DateTime.UtcNow);
 
-        // 1️⃣ check full day closure
+        // 1. Kiểm tra full day closure
         var fullDayClosure = await _context.TimeSlotOverrides
             .FirstOrDefaultAsync(o =>
                 o.StoreId == storeId &&
@@ -34,31 +34,24 @@ public class TimeSlotsController : ControllerBase
                 o.IsFullDayClosure);
 
         if (fullDayClosure != null)
-            return Ok(new List<object>()); // đóng cửa cả ngày
+            return Ok(new List<object>());
 
-
-        // 2️⃣ lấy template slots
+        // 2. Lấy template slots + SẮP XẾP THEO GIỜ (quan trọng nhất)
         var templates = await _context.TimeSlots
-            .Where(s => s.StoreId == storeId)
+            .Where(s => s.StoreId == storeId && s.IsActive)
+            .OrderBy(s => s.StartTime)          // ← SẮP XẾP TỪ SỚM → MUỘN
             .ToListAsync();
 
-
-        // 3️⃣ lấy override theo ngày
+        // 3. Lấy override theo ngày
         var overrides = await _context.TimeSlotOverrides
             .Where(o => o.StoreId == storeId && o.Date == targetDate)
             .ToListAsync();
 
-
         var result = new List<object>();
-
 
         foreach (var slot in templates)
         {
-            // Trong vòng lặp foreach (var slot in baseSlots)
-            var ov = await _context.TimeSlotOverrides
-                .FirstOrDefaultAsync(o => o.StoreId == storeId
-                                       && o.Date == targetDate
-                                       && o.TimeSlotId == slot.Id);
+            var ov = overrides.FirstOrDefault(o => o.TimeSlotId == slot.Id);
 
             bool isActive = ov?.IsActive ?? slot.IsActive;
             var effectiveCapacity = ov?.Capacity ?? slot.Capacity;
@@ -72,7 +65,6 @@ public class TimeSlotsController : ControllerBase
 
             var remaining = effectiveCapacity - booked;
 
-            // Luôn trả về slot, kể cả khi bị override disable
             result.Add(new
             {
                 id = slot.Id,
@@ -80,18 +72,13 @@ public class TimeSlotsController : ControllerBase
                 endTime = effectiveEnd.ToString(@"hh\:mm"),
                 capacity = effectiveCapacity,
                 remainingCapacity = remaining,
-                isAvailable = isActive && remaining > 0,   // chỉ available nếu active VÀ còn chỗ
+                isAvailable = isActive && remaining > 0,
                 isOverridden = ov != null,
-                overrideReason = ov?.Reason ?? (isActive ? null : "Slot bị tạm ngưng theo lịch đặc biệt"),
-                isDisabledByOverride = !isActive           // field mới để frontend biết là bị disable chủ động
+                overrideReason = ov?.Reason ?? (isActive ? null : "Slot bị tạm ngưng"),
+                isDisabledByOverride = !isActive
             });
         }
 
         return Ok(result);
     }
 }
-
-
-
-
- 

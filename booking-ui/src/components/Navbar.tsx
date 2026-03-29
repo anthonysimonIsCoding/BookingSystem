@@ -14,6 +14,19 @@ const Navbar: React.FC = () => {
 
     const navigate = useNavigate();
 
+    // Kiểm tra đăng nhập (cập nhật mỗi khi token thay đổi)
+    useEffect(() => {
+        const checkLogin = () => {
+            const token = localStorage.getItem("token");
+            setIsLoggedIn(!!token);
+        };
+        checkLogin();
+
+        // Theo dõi thay đổi token (trường hợp logout từ tab khác)
+        window.addEventListener('storage', checkLogin);
+        return () => window.removeEventListener('storage', checkLogin);
+    }, []);
+
     // CALL API lấy danh sách dịch vụ
     useEffect(() => {
         fetch('http://localhost:5263/api/navbar/store-categories')
@@ -54,9 +67,12 @@ const Navbar: React.FC = () => {
                 {/* SEARCH */}
                 <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: '520px', margin: '0 32px' }} />
 
-                {/* USER */}
+                {/* USER ICON */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                    <button style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#00AEEF' }} onClick={() => navigate('/profile')}>
+                    <button
+                        style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#00AEEF' }}
+                        onClick={() => isLoggedIn ? navigate('/profile') : navigate('/login')}
+                    >
                         👤
                     </button>
                 </div>
@@ -90,7 +106,7 @@ const Navbar: React.FC = () => {
                                         services.map((s) => (
                                             <Link
                                                 key={s.id}
-                                                to={`/list?categoryIds=${s.id}`}   
+                                                to={`/list?categoryIds=${s.id}`}
                                                 style={{ display: 'block', padding: '10px 20px', color: '#333', textDecoration: 'none' }}
                                                 onClick={() => setShowServicesDropdown(false)}
                                             >
@@ -107,20 +123,14 @@ const Navbar: React.FC = () => {
                         <Link to="#" style={{ color: '#ffffff' }}>Trở thành đối tác</Link>
                     </div>
 
-                    {/* AUTH */}
+                    {/* AUTH - chỉ hiện khi CHƯA đăng nhập */}
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: '16px' }}>
-                        {!isLoggedIn ? (
-                            <>
-                                <button onClick={() => navigate('/login')} style={{ color: '#ffffff', background: 'none', border: 'none' }}>
-                                    Đăng nhập
-                                </button>
-                                <button style={{ backgroundColor: '#FF6B00', color: 'white', padding: '6px 16px', borderRadius: '6px', border: 'none' }}>
-                                    Đăng ký
-                                </button>
-                            </>
-                        ) : (
-                            <button style={{ color: '#ffffff', background: 'none', border: 'none' }}>
-                                Tài khoản ▼
+                        {!isLoggedIn && (
+                            <button
+                                onClick={() => navigate('/login')}
+                                style={{ color: '#ffffff', background: 'none', border: 'none' }}
+                            >
+                                Đăng nhập
                             </button>
                         )}
                     </div>

@@ -31,6 +31,8 @@ public class Pet
 
     public DateTime? UpdatedAt { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     // Navigation
     public User User { get; set; } = null!;
     public Species Species { get; set; } = null!;

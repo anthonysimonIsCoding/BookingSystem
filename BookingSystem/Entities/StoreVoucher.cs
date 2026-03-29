@@ -38,7 +38,7 @@ public class StoreVoucher
     public Guid? CreatedByStoreOwnerId { get; set; }    // Ai tạo (thường là owner hoặc staff của store)
 
     // Navigation
-    public Store Store { get; set; }
+    public Store Store { get; set; } = null!;
     public Service? ApplicableService { get; set; }
     public Species? ApplicableSpecies { get; set; }
     public User? CreatedByStoreOwner { get; set; }

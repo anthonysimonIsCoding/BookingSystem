@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from '../utils/axiosInstance';
 import FilterPanel from "../components/FilterPanel";
 import StoreCard from "../components/StoreCard";
 import Navbar from '../components/Navbar';
@@ -72,7 +72,7 @@ export default function StoreListPage() {
         try {
             const params: Record<string, any> = {
                 sort: searchParams.get("sort") || "recommended",
-                radius: 50,
+                radius: 20000,
             };
 
             if (userLocation) {
@@ -92,7 +92,7 @@ export default function StoreListPage() {
             if (searchParams.get("maxPrice")) params.maxPrice = Number(searchParams.get("maxPrice"));
             if (searchParams.get("search")) params.search = searchParams.get("search");
 
-            const res = await axios.get("http://localhost:5263/api/stores", { params });
+            const res = await api.get("http://localhost:5263/api/stores", { params });
             setStores(res.data);
         } catch (err: any) {
             console.error(err);

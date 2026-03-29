@@ -24,7 +24,7 @@ public class StoresController : ControllerBase
     string sort = "recommended",
     double? lat = null,
     double? lng = null,
-    double radius = 20,
+    double radius = 300000,
 
     Guid? speciesId = null,
     string? categoryIds = null,

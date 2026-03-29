@@ -1,8 +1,11 @@
-﻿namespace BookingSystem.Entities;
+﻿using BookingSystem.Entities.Enums;
+
+namespace BookingSystem.Entities;
 
 public class Store
 {
     public Guid Id { get; set; }
+    public Guid? OwnerId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -16,8 +19,9 @@ public class Store
 
     public DateTime? UpdatedAt { get; set; }
 
+    public User? Owner { get; set; }
     public decimal AverageRating { get; set; } = 0.0m; // Trung bình số sao (tính từ Reviews)
-
+    public StoreStatus Status { get; set; } = StoreStatus.Pending;   // Quan trọng nhất
     public int ReviewCount { get; set; } = 0; // Số lượng review
     public int TotalCompletedBookings { get; set; } = 0;  // <-- Thêm dòng này
     // Navigation

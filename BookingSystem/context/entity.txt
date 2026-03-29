@@ -1,0 +1,946 @@
+USE [master]
+GO
+/****** Object:  Database [BookingSystemDb]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE DATABASE [BookingSystemDb]
+ CONTAINMENT = NONE
+ ON  PRIMARY 
+( NAME = N'BookingSystemDb', FILENAME = N'C:\Coding Application\sqlSv\MSSQL16.MSSQLSERVER\MSSQL\DATA\BookingSystemDb.mdf' , SIZE = 73728KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
+ LOG ON 
+( NAME = N'BookingSystemDb_log', FILENAME = N'C:\Coding Application\sqlSv\MSSQL16.MSSQLSERVER\MSSQL\DATA\BookingSystemDb_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
+ WITH CATALOG_COLLATION = DATABASE_DEFAULT, LEDGER = OFF
+GO
+ALTER DATABASE [BookingSystemDb] SET COMPATIBILITY_LEVEL = 160
+GO
+IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
+begin
+EXEC [BookingSystemDb].[dbo].[sp_fulltext_database] @action = 'enable'
+end
+GO
+ALTER DATABASE [BookingSystemDb] SET ANSI_NULL_DEFAULT OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET ANSI_NULLS OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET ANSI_PADDING OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET ANSI_WARNINGS OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET ARITHABORT OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET AUTO_CLOSE OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET AUTO_SHRINK OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET AUTO_UPDATE_STATISTICS ON 
+GO
+ALTER DATABASE [BookingSystemDb] SET CURSOR_CLOSE_ON_COMMIT OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET CURSOR_DEFAULT  GLOBAL 
+GO
+ALTER DATABASE [BookingSystemDb] SET CONCAT_NULL_YIELDS_NULL OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET NUMERIC_ROUNDABORT OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET QUOTED_IDENTIFIER OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET RECURSIVE_TRIGGERS OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET  ENABLE_BROKER 
+GO
+ALTER DATABASE [BookingSystemDb] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET DATE_CORRELATION_OPTIMIZATION OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET TRUSTWORTHY OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET ALLOW_SNAPSHOT_ISOLATION OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET PARAMETERIZATION SIMPLE 
+GO
+ALTER DATABASE [BookingSystemDb] SET READ_COMMITTED_SNAPSHOT ON 
+GO
+ALTER DATABASE [BookingSystemDb] SET HONOR_BROKER_PRIORITY OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET RECOVERY FULL 
+GO
+ALTER DATABASE [BookingSystemDb] SET  MULTI_USER 
+GO
+ALTER DATABASE [BookingSystemDb] SET PAGE_VERIFY CHECKSUM  
+GO
+ALTER DATABASE [BookingSystemDb] SET DB_CHAINING OFF 
+GO
+ALTER DATABASE [BookingSystemDb] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF ) 
+GO
+ALTER DATABASE [BookingSystemDb] SET TARGET_RECOVERY_TIME = 60 SECONDS 
+GO
+ALTER DATABASE [BookingSystemDb] SET DELAYED_DURABILITY = DISABLED 
+GO
+ALTER DATABASE [BookingSystemDb] SET ACCELERATED_DATABASE_RECOVERY = OFF  
+GO
+EXEC sys.sp_db_vardecimal_storage_format N'BookingSystemDb', N'ON'
+GO
+ALTER DATABASE [BookingSystemDb] SET QUERY_STORE = ON
+GO
+ALTER DATABASE [BookingSystemDb] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 30), DATA_FLUSH_INTERVAL_SECONDS = 900, INTERVAL_LENGTH_MINUTES = 60, MAX_STORAGE_SIZE_MB = 1000, QUERY_CAPTURE_MODE = AUTO, SIZE_BASED_CLEANUP_MODE = AUTO, MAX_PLANS_PER_QUERY = 200, WAIT_STATS_CAPTURE_MODE = ON)
+GO
+USE [BookingSystemDb]
+GO
+/****** Object:  Table [dbo].[__EFMigrationsHistory]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[__EFMigrationsHistory](
+	[MigrationId] [nvarchar](150) NOT NULL,
+	[ProductVersion] [nvarchar](32) NOT NULL,
+ CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY CLUSTERED 
+(
+	[MigrationId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Bookings]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Bookings](
+	[Id] [uniqueidentifier] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[TimeSlotId] [uniqueidentifier] NOT NULL,
+	[PetId] [uniqueidentifier] NOT NULL,
+	[BookingDate] [date] NOT NULL,
+	[Status] [tinyint] NOT NULL,
+	[Notes] [nvarchar](max) NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+	[CancelledAt] [datetime2](7) NULL,
+	[CancellationReason] [nvarchar](max) NULL,
+	[PlatformVoucherId] [uniqueidentifier] NULL,
+	[StoreVoucherId] [uniqueidentifier] NULL,
+	[PlatformVoucherDiscount] [decimal](18, 2) NULL,
+	[StoreVoucherDiscount] [decimal](18, 2) NULL,
+	[TotalPrice] [decimal](18, 2) NOT NULL,
+ CONSTRAINT [PK_Bookings] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[BookingServiceItems]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[BookingServiceItems](
+	[Id] [uniqueidentifier] NOT NULL,
+	[BookingId] [uniqueidentifier] NOT NULL,
+	[ServiceOptionId] [uniqueidentifier] NOT NULL,
+	[Price] [decimal](10, 2) NOT NULL,
+	[DurationMinutes] [int] NOT NULL,
+ CONSTRAINT [PK_BookingServiceItems] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Breeds]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Breeds](
+	[Id] [uniqueidentifier] NOT NULL,
+	[SpeciesId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+ CONSTRAINT [PK_Breeds] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Pets]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Pets](
+	[Id] [uniqueidentifier] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+	[SpeciesId] [uniqueidentifier] NOT NULL,
+	[BreedId] [uniqueidentifier] NULL,
+	[Gender] [nvarchar](max) NULL,
+	[DateOfBirth] [date] NULL,
+	[Color] [nvarchar](max) NULL,
+	[Weight] [float] NULL,
+	[Notes] [nvarchar](max) NULL,
+	[ProfileImageUrl] [nvarchar](max) NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+ CONSTRAINT [PK_Pets] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlatformVouchers]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlatformVouchers](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Code] [nvarchar](50) NOT NULL,
+	[Name] [nvarchar](150) NULL,
+	[Description] [nvarchar](1000) NULL,
+	[DiscountType] [int] NOT NULL,
+	[DiscountValue] [decimal](18, 2) NOT NULL,
+	[MinOrderValue] [decimal](18, 2) NULL,
+	[MaxDiscountAmount] [decimal](18, 2) NULL,
+	[UsageLimitPerUser] [int] NULL,
+	[TotalUsageLimit] [int] NULL,
+	[StartDate] [datetime2](7) NOT NULL,
+	[EndDate] [datetime2](7) NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+	[CreatedByAdminId] [uniqueidentifier] NULL,
+ CONSTRAINT [PK_PlatformVouchers] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Reviews]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Reviews](
+	[Id] [uniqueidentifier] NOT NULL,
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[Rating] [decimal](3, 1) NOT NULL,
+	[Comment] [nvarchar](1000) NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+ CONSTRAINT [PK_Reviews] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ServiceOptionGroups]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ServiceOptionGroups](
+	[Id] [uniqueidentifier] NOT NULL,
+	[ServiceId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Type] [int] NOT NULL,
+	[IsRequired] [bit] NOT NULL,
+ CONSTRAINT [PK_ServiceOptionGroups] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ServiceOptions]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ServiceOptions](
+	[Id] [uniqueidentifier] NOT NULL,
+	[OptionGroupId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Price] [decimal](10, 2) NOT NULL,
+	[DurationMinutes] [int] NOT NULL,
+	[IsActive] [bit] NOT NULL,
+ CONSTRAINT [PK_ServiceOptions] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Services]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Services](
+	[Id] [uniqueidentifier] NOT NULL,
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Description] [nvarchar](500) NULL,
+	[Price] [decimal](18, 2) NOT NULL,
+	[DurationMinutes] [int] NOT NULL,
+	[Type] [int] NOT NULL,
+	[IsActive] [bit] NOT NULL,
+ CONSTRAINT [PK_Services] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Species]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Species](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+ CONSTRAINT [PK_Species] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[StoreCategories]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[StoreCategories](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Description] [nvarchar](max) NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+ CONSTRAINT [PK_StoreCategories] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[StoreCategoryMappings]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[StoreCategoryMappings](
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[CategoryId] [uniqueidentifier] NOT NULL,
+ CONSTRAINT [PK_StoreCategoryMappings] PRIMARY KEY CLUSTERED 
+(
+	[StoreId] ASC,
+	[CategoryId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[StoreImages]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[StoreImages](
+	[Id] [uniqueidentifier] NOT NULL,
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[ImageUrl] [nvarchar](500) NOT NULL,
+	[IsThumbnail] [bit] NOT NULL,
+	[Order] [int] NOT NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+ CONSTRAINT [PK_StoreImages] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Stores]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Stores](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](100) NOT NULL,
+	[Address] [nvarchar](500) NOT NULL,
+	[Latitude] [decimal](10, 7) NULL,
+	[Longitude] [decimal](10, 7) NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+	[AverageRating] [decimal](3, 1) NOT NULL,
+	[Status] [int] NOT NULL,
+	[ReviewCount] [int] NOT NULL,
+	[TotalCompletedBookings] [int] NOT NULL,
+ CONSTRAINT [PK_Stores] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[StoreSpecies]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[StoreSpecies](
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[SpeciesId] [uniqueidentifier] NOT NULL,
+ CONSTRAINT [PK_StoreSpecies] PRIMARY KEY CLUSTERED 
+(
+	[StoreId] ASC,
+	[SpeciesId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[StoreVouchers]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[StoreVouchers](
+	[Id] [uniqueidentifier] NOT NULL,
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[Code] [nvarchar](50) NOT NULL,
+	[Name] [nvarchar](150) NULL,
+	[Description] [nvarchar](1000) NULL,
+	[DiscountType] [int] NOT NULL,
+	[DiscountValue] [decimal](18, 2) NOT NULL,
+	[MinOrderValue] [decimal](18, 2) NULL,
+	[MaxDiscountAmount] [decimal](18, 2) NULL,
+	[UsageLimitPerUser] [int] NULL,
+	[TotalUsageLimit] [int] NULL,
+	[StartDate] [datetime2](7) NOT NULL,
+	[EndDate] [datetime2](7) NULL,
+	[IsActive] [bit] NOT NULL,
+	[ApplicableServiceId] [uniqueidentifier] NULL,
+	[ApplicableSpeciesId] [uniqueidentifier] NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+	[CreatedByStoreOwnerId] [uniqueidentifier] NULL,
+ CONSTRAINT [PK_StoreVouchers] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[TimeSlotOverrides]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[TimeSlotOverrides](
+	[Id] [uniqueidentifier] NOT NULL,
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[TimeSlotId] [uniqueidentifier] NULL,
+	[Date] [date] NOT NULL,
+	[StartTime] [time](7) NULL,
+	[EndTime] [time](7) NULL,
+	[Capacity] [int] NULL,
+	[IsActive] [bit] NULL,
+	[IsFullDayClosure] [bit] NOT NULL,
+	[Reason] [nvarchar](500) NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[CreatedByUserId] [uniqueidentifier] NOT NULL,
+ CONSTRAINT [PK_TimeSlotOverrides] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[TimeSlots]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[TimeSlots](
+	[Id] [uniqueidentifier] NOT NULL,
+	[StoreId] [uniqueidentifier] NOT NULL,
+	[StartTime] [time](7) NOT NULL,
+	[EndTime] [time](7) NOT NULL,
+	[Capacity] [int] NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+ CONSTRAINT [PK_TimeSlots] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[UsedVouchers]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UsedVouchers](
+	[Id] [uniqueidentifier] NOT NULL,
+	[PlatformVoucherId] [uniqueidentifier] NULL,
+	[StoreVoucherId] [uniqueidentifier] NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[BookingId] [uniqueidentifier] NOT NULL,
+	[DiscountApplied] [decimal](18, 2) NOT NULL,
+	[UsedAt] [datetime2](7) NOT NULL,
+ CONSTRAINT [PK_UsedVouchers] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Users]    Script Date: 3/26/2026 3:23:24 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Users](
+	[Id] [uniqueidentifier] NOT NULL,
+	[FullName] [nvarchar](100) NOT NULL,
+	[Email] [nvarchar](256) NOT NULL,
+	[PhoneNumber] [nvarchar](max) NULL,
+	[PasswordHash] [nvarchar](max) NOT NULL,
+	[Role] [int] NOT NULL,
+	[CreatedAt] [datetime2](7) NOT NULL,
+	[UpdatedAt] [datetime2](7) NULL,
+ CONSTRAINT [PK_Users] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Bookings_PetId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Bookings_PetId] ON [dbo].[Bookings]
+(
+	[PetId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Bookings_PlatformVoucherId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Bookings_PlatformVoucherId] ON [dbo].[Bookings]
+(
+	[PlatformVoucherId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Bookings_StoreId_BookingDate_TimeSlotId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Bookings_StoreId_BookingDate_TimeSlotId] ON [dbo].[Bookings]
+(
+	[StoreId] ASC,
+	[BookingDate] ASC,
+	[TimeSlotId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Bookings_StoreVoucherId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Bookings_StoreVoucherId] ON [dbo].[Bookings]
+(
+	[StoreVoucherId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Bookings_TimeSlotId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Bookings_TimeSlotId] ON [dbo].[Bookings]
+(
+	[TimeSlotId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Bookings_UserId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Bookings_UserId] ON [dbo].[Bookings]
+(
+	[UserId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_BookingServiceItems_BookingId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_BookingServiceItems_BookingId] ON [dbo].[BookingServiceItems]
+(
+	[BookingId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_BookingServiceItems_ServiceOptionId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_BookingServiceItems_ServiceOptionId] ON [dbo].[BookingServiceItems]
+(
+	[ServiceOptionId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [IX_Breeds_SpeciesId_Name]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Breeds_SpeciesId_Name] ON [dbo].[Breeds]
+(
+	[SpeciesId] ASC,
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Pets_BreedId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Pets_BreedId] ON [dbo].[Pets]
+(
+	[BreedId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Pets_SpeciesId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Pets_SpeciesId] ON [dbo].[Pets]
+(
+	[SpeciesId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Pets_UserId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Pets_UserId] ON [dbo].[Pets]
+(
+	[UserId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [IX_PlatformVouchers_Code]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [IX_PlatformVouchers_Code] ON [dbo].[PlatformVouchers]
+(
+	[Code] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_PlatformVouchers_CreatedByAdminId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_PlatformVouchers_CreatedByAdminId] ON [dbo].[PlatformVouchers]
+(
+	[CreatedByAdminId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Reviews_StoreId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Reviews_StoreId] ON [dbo].[Reviews]
+(
+	[StoreId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Reviews_UserId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Reviews_UserId] ON [dbo].[Reviews]
+(
+	[UserId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_ServiceOptionGroups_ServiceId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_ServiceOptionGroups_ServiceId] ON [dbo].[ServiceOptionGroups]
+(
+	[ServiceId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_ServiceOptions_OptionGroupId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_ServiceOptions_OptionGroupId] ON [dbo].[ServiceOptions]
+(
+	[OptionGroupId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_Services_StoreId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_Services_StoreId] ON [dbo].[Services]
+(
+	[StoreId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [IX_Species_Name]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Species_Name] ON [dbo].[Species]
+(
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [IX_StoreCategories_Name]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [IX_StoreCategories_Name] ON [dbo].[StoreCategories]
+(
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_StoreCategoryMappings_CategoryId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_StoreCategoryMappings_CategoryId] ON [dbo].[StoreCategoryMappings]
+(
+	[CategoryId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_StoreImages_StoreId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_StoreImages_StoreId] ON [dbo].[StoreImages]
+(
+	[StoreId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_StoreSpecies_SpeciesId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_StoreSpecies_SpeciesId] ON [dbo].[StoreSpecies]
+(
+	[SpeciesId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_StoreVouchers_ApplicableServiceId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_StoreVouchers_ApplicableServiceId] ON [dbo].[StoreVouchers]
+(
+	[ApplicableServiceId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_StoreVouchers_ApplicableSpeciesId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_StoreVouchers_ApplicableSpeciesId] ON [dbo].[StoreVouchers]
+(
+	[ApplicableSpeciesId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_StoreVouchers_CreatedByStoreOwnerId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_StoreVouchers_CreatedByStoreOwnerId] ON [dbo].[StoreVouchers]
+(
+	[CreatedByStoreOwnerId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [IX_StoreVouchers_StoreId_Code]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [IX_StoreVouchers_StoreId_Code] ON [dbo].[StoreVouchers]
+(
+	[StoreId] ASC,
+	[Code] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_TimeSlotOverrides_StoreId_Date]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_TimeSlotOverrides_StoreId_Date] ON [dbo].[TimeSlotOverrides]
+(
+	[StoreId] ASC,
+	[Date] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_TimeSlotOverrides_StoreId_Date_TimeSlotId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_TimeSlotOverrides_StoreId_Date_TimeSlotId] ON [dbo].[TimeSlotOverrides]
+(
+	[StoreId] ASC,
+	[Date] ASC,
+	[TimeSlotId] ASC
+)
+WHERE ([TimeSlotId] IS NULL)
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_TimeSlotOverrides_TimeSlotId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_TimeSlotOverrides_TimeSlotId] ON [dbo].[TimeSlotOverrides]
+(
+	[TimeSlotId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_TimeSlots_StoreId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_TimeSlots_StoreId] ON [dbo].[TimeSlots]
+(
+	[StoreId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_UsedVouchers_BookingId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_UsedVouchers_BookingId] ON [dbo].[UsedVouchers]
+(
+	[BookingId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_UsedVouchers_PlatformVoucherId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_UsedVouchers_PlatformVoucherId] ON [dbo].[UsedVouchers]
+(
+	[PlatformVoucherId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_UsedVouchers_StoreVoucherId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE NONCLUSTERED INDEX [IX_UsedVouchers_StoreVoucherId] ON [dbo].[UsedVouchers]
+(
+	[StoreVoucherId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+/****** Object:  Index [IX_UsedVouchers_UserId_BookingId]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [IX_UsedVouchers_UserId_BookingId] ON [dbo].[UsedVouchers]
+(
+	[UserId] ASC,
+	[BookingId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+/****** Object:  Index [IX_Users_Email]    Script Date: 3/26/2026 3:23:24 PM ******/
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Users_Email] ON [dbo].[Users]
+(
+	[Email] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Bookings] ADD  DEFAULT (CONVERT([tinyint],(0))) FOR [Status]
+GO
+ALTER TABLE [dbo].[Stores] ADD  DEFAULT ((0)) FOR [ReviewCount]
+GO
+ALTER TABLE [dbo].[Stores] ADD  DEFAULT ((0)) FOR [TotalCompletedBookings]
+GO
+ALTER TABLE [dbo].[TimeSlotOverrides] ADD  DEFAULT (getutcdate()) FOR [CreatedAt]
+GO
+ALTER TABLE [dbo].[Bookings]  WITH CHECK ADD  CONSTRAINT [FK_Bookings_Pets_PetId] FOREIGN KEY([PetId])
+REFERENCES [dbo].[Pets] ([Id])
+GO
+ALTER TABLE [dbo].[Bookings] CHECK CONSTRAINT [FK_Bookings_Pets_PetId]
+GO
+ALTER TABLE [dbo].[Bookings]  WITH CHECK ADD  CONSTRAINT [FK_Bookings_PlatformVouchers_PlatformVoucherId] FOREIGN KEY([PlatformVoucherId])
+REFERENCES [dbo].[PlatformVouchers] ([Id])
+GO
+ALTER TABLE [dbo].[Bookings] CHECK CONSTRAINT [FK_Bookings_PlatformVouchers_PlatformVoucherId]
+GO
+ALTER TABLE [dbo].[Bookings]  WITH CHECK ADD  CONSTRAINT [FK_Bookings_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+GO
+ALTER TABLE [dbo].[Bookings] CHECK CONSTRAINT [FK_Bookings_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[Bookings]  WITH CHECK ADD  CONSTRAINT [FK_Bookings_StoreVouchers_StoreVoucherId] FOREIGN KEY([StoreVoucherId])
+REFERENCES [dbo].[StoreVouchers] ([Id])
+GO
+ALTER TABLE [dbo].[Bookings] CHECK CONSTRAINT [FK_Bookings_StoreVouchers_StoreVoucherId]
+GO
+ALTER TABLE [dbo].[Bookings]  WITH CHECK ADD  CONSTRAINT [FK_Bookings_TimeSlots_TimeSlotId] FOREIGN KEY([TimeSlotId])
+REFERENCES [dbo].[TimeSlots] ([Id])
+GO
+ALTER TABLE [dbo].[Bookings] CHECK CONSTRAINT [FK_Bookings_TimeSlots_TimeSlotId]
+GO
+ALTER TABLE [dbo].[Bookings]  WITH CHECK ADD  CONSTRAINT [FK_Bookings_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[Bookings] CHECK CONSTRAINT [FK_Bookings_Users_UserId]
+GO
+ALTER TABLE [dbo].[BookingServiceItems]  WITH CHECK ADD  CONSTRAINT [FK_BookingServiceItems_Bookings_BookingId] FOREIGN KEY([BookingId])
+REFERENCES [dbo].[Bookings] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[BookingServiceItems] CHECK CONSTRAINT [FK_BookingServiceItems_Bookings_BookingId]
+GO
+ALTER TABLE [dbo].[BookingServiceItems]  WITH CHECK ADD  CONSTRAINT [FK_BookingServiceItems_ServiceOptions_ServiceOptionId] FOREIGN KEY([ServiceOptionId])
+REFERENCES [dbo].[ServiceOptions] ([Id])
+GO
+ALTER TABLE [dbo].[BookingServiceItems] CHECK CONSTRAINT [FK_BookingServiceItems_ServiceOptions_ServiceOptionId]
+GO
+ALTER TABLE [dbo].[Breeds]  WITH CHECK ADD  CONSTRAINT [FK_Breeds_Species_SpeciesId] FOREIGN KEY([SpeciesId])
+REFERENCES [dbo].[Species] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Breeds] CHECK CONSTRAINT [FK_Breeds_Species_SpeciesId]
+GO
+ALTER TABLE [dbo].[Pets]  WITH CHECK ADD  CONSTRAINT [FK_Pets_Breeds_BreedId] FOREIGN KEY([BreedId])
+REFERENCES [dbo].[Breeds] ([Id])
+GO
+ALTER TABLE [dbo].[Pets] CHECK CONSTRAINT [FK_Pets_Breeds_BreedId]
+GO
+ALTER TABLE [dbo].[Pets]  WITH CHECK ADD  CONSTRAINT [FK_Pets_Species_SpeciesId] FOREIGN KEY([SpeciesId])
+REFERENCES [dbo].[Species] ([Id])
+GO
+ALTER TABLE [dbo].[Pets] CHECK CONSTRAINT [FK_Pets_Species_SpeciesId]
+GO
+ALTER TABLE [dbo].[Pets]  WITH CHECK ADD  CONSTRAINT [FK_Pets_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Pets] CHECK CONSTRAINT [FK_Pets_Users_UserId]
+GO
+ALTER TABLE [dbo].[PlatformVouchers]  WITH CHECK ADD  CONSTRAINT [FK_PlatformVouchers_Users_CreatedByAdminId] FOREIGN KEY([CreatedByAdminId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[PlatformVouchers] CHECK CONSTRAINT [FK_PlatformVouchers_Users_CreatedByAdminId]
+GO
+ALTER TABLE [dbo].[Reviews]  WITH CHECK ADD  CONSTRAINT [FK_Reviews_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Reviews] CHECK CONSTRAINT [FK_Reviews_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[Reviews]  WITH CHECK ADD  CONSTRAINT [FK_Reviews_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[Reviews] CHECK CONSTRAINT [FK_Reviews_Users_UserId]
+GO
+ALTER TABLE [dbo].[ServiceOptionGroups]  WITH CHECK ADD  CONSTRAINT [FK_ServiceOptionGroups_Services_ServiceId] FOREIGN KEY([ServiceId])
+REFERENCES [dbo].[Services] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[ServiceOptionGroups] CHECK CONSTRAINT [FK_ServiceOptionGroups_Services_ServiceId]
+GO
+ALTER TABLE [dbo].[ServiceOptions]  WITH CHECK ADD  CONSTRAINT [FK_ServiceOptions_ServiceOptionGroups_OptionGroupId] FOREIGN KEY([OptionGroupId])
+REFERENCES [dbo].[ServiceOptionGroups] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[ServiceOptions] CHECK CONSTRAINT [FK_ServiceOptions_ServiceOptionGroups_OptionGroupId]
+GO
+ALTER TABLE [dbo].[Services]  WITH CHECK ADD  CONSTRAINT [FK_Services_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Services] CHECK CONSTRAINT [FK_Services_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[StoreCategoryMappings]  WITH CHECK ADD  CONSTRAINT [FK_StoreCategoryMappings_StoreCategories_CategoryId] FOREIGN KEY([CategoryId])
+REFERENCES [dbo].[StoreCategories] ([Id])
+GO
+ALTER TABLE [dbo].[StoreCategoryMappings] CHECK CONSTRAINT [FK_StoreCategoryMappings_StoreCategories_CategoryId]
+GO
+ALTER TABLE [dbo].[StoreCategoryMappings]  WITH CHECK ADD  CONSTRAINT [FK_StoreCategoryMappings_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[StoreCategoryMappings] CHECK CONSTRAINT [FK_StoreCategoryMappings_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[StoreImages]  WITH CHECK ADD  CONSTRAINT [FK_StoreImages_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[StoreImages] CHECK CONSTRAINT [FK_StoreImages_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[StoreSpecies]  WITH CHECK ADD  CONSTRAINT [FK_StoreSpecies_Species_SpeciesId] FOREIGN KEY([SpeciesId])
+REFERENCES [dbo].[Species] ([Id])
+GO
+ALTER TABLE [dbo].[StoreSpecies] CHECK CONSTRAINT [FK_StoreSpecies_Species_SpeciesId]
+GO
+ALTER TABLE [dbo].[StoreSpecies]  WITH CHECK ADD  CONSTRAINT [FK_StoreSpecies_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[StoreSpecies] CHECK CONSTRAINT [FK_StoreSpecies_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[StoreVouchers]  WITH CHECK ADD  CONSTRAINT [FK_StoreVouchers_Services_ApplicableServiceId] FOREIGN KEY([ApplicableServiceId])
+REFERENCES [dbo].[Services] ([Id])
+ON DELETE SET NULL
+GO
+ALTER TABLE [dbo].[StoreVouchers] CHECK CONSTRAINT [FK_StoreVouchers_Services_ApplicableServiceId]
+GO
+ALTER TABLE [dbo].[StoreVouchers]  WITH CHECK ADD  CONSTRAINT [FK_StoreVouchers_Species_ApplicableSpeciesId] FOREIGN KEY([ApplicableSpeciesId])
+REFERENCES [dbo].[Species] ([Id])
+ON DELETE SET NULL
+GO
+ALTER TABLE [dbo].[StoreVouchers] CHECK CONSTRAINT [FK_StoreVouchers_Species_ApplicableSpeciesId]
+GO
+ALTER TABLE [dbo].[StoreVouchers]  WITH CHECK ADD  CONSTRAINT [FK_StoreVouchers_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+GO
+ALTER TABLE [dbo].[StoreVouchers] CHECK CONSTRAINT [FK_StoreVouchers_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[StoreVouchers]  WITH CHECK ADD  CONSTRAINT [FK_StoreVouchers_Users_CreatedByStoreOwnerId] FOREIGN KEY([CreatedByStoreOwnerId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[StoreVouchers] CHECK CONSTRAINT [FK_StoreVouchers_Users_CreatedByStoreOwnerId]
+GO
+ALTER TABLE [dbo].[TimeSlotOverrides]  WITH CHECK ADD  CONSTRAINT [FK_TimeSlotOverrides_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[TimeSlotOverrides] CHECK CONSTRAINT [FK_TimeSlotOverrides_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[TimeSlotOverrides]  WITH CHECK ADD  CONSTRAINT [FK_TimeSlotOverrides_TimeSlots_TimeSlotId] FOREIGN KEY([TimeSlotId])
+REFERENCES [dbo].[TimeSlots] ([Id])
+GO
+ALTER TABLE [dbo].[TimeSlotOverrides] CHECK CONSTRAINT [FK_TimeSlotOverrides_TimeSlots_TimeSlotId]
+GO
+ALTER TABLE [dbo].[TimeSlots]  WITH CHECK ADD  CONSTRAINT [FK_TimeSlots_Stores_StoreId] FOREIGN KEY([StoreId])
+REFERENCES [dbo].[Stores] ([Id])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[TimeSlots] CHECK CONSTRAINT [FK_TimeSlots_Stores_StoreId]
+GO
+ALTER TABLE [dbo].[UsedVouchers]  WITH CHECK ADD  CONSTRAINT [FK_UsedVouchers_Bookings_BookingId] FOREIGN KEY([BookingId])
+REFERENCES [dbo].[Bookings] ([Id])
+GO
+ALTER TABLE [dbo].[UsedVouchers] CHECK CONSTRAINT [FK_UsedVouchers_Bookings_BookingId]
+GO
+ALTER TABLE [dbo].[UsedVouchers]  WITH CHECK ADD  CONSTRAINT [FK_UsedVouchers_PlatformVouchers_PlatformVoucherId] FOREIGN KEY([PlatformVoucherId])
+REFERENCES [dbo].[PlatformVouchers] ([Id])
+GO
+ALTER TABLE [dbo].[UsedVouchers] CHECK CONSTRAINT [FK_UsedVouchers_PlatformVouchers_PlatformVoucherId]
+GO
+ALTER TABLE [dbo].[UsedVouchers]  WITH CHECK ADD  CONSTRAINT [FK_UsedVouchers_StoreVouchers_StoreVoucherId] FOREIGN KEY([StoreVoucherId])
+REFERENCES [dbo].[StoreVouchers] ([Id])
+GO
+ALTER TABLE [dbo].[UsedVouchers] CHECK CONSTRAINT [FK_UsedVouchers_StoreVouchers_StoreVoucherId]
+GO
+ALTER TABLE [dbo].[UsedVouchers]  WITH CHECK ADD  CONSTRAINT [FK_UsedVouchers_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[UsedVouchers] CHECK CONSTRAINT [FK_UsedVouchers_Users_UserId]
+GO
+USE [master]
+GO
+ALTER DATABASE [BookingSystemDb] SET  READ_WRITE 
+GO

@@ -18,7 +18,7 @@ public class Booking
 
     public DateOnly BookingDate { get; set; }
 
-    public BookingStatus Status { get; set; } = BookingStatus.Active;
+    public BookingStatus Status { get; set; } = BookingStatus.Pending;
 
     public string? Notes { get; set; }
 
@@ -45,6 +45,6 @@ public class Booking
     public Pet Pet { get; set; } = null!;
     public PlatformVoucher? PlatformVoucher { get; set; }
     public StoreVoucher? StoreVoucher { get; set; }
-    public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+    public ICollection<BookingServiceItem> ServiceItems { get; set; } = new List<BookingServiceItem>();
 
 }

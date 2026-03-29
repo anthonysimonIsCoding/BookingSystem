@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from '../utils/axiosInstance';
 import StoreCard from "../components/StoreCard";
 import Navbar from '../components/Navbar';
 import HeroBanner from '../components/HeroBanner';
@@ -17,7 +17,7 @@ export default function HomePage() {
         const loadStores = async () => {
             const token = localStorage.getItem("token");
 
-            const res = await axios.get(
+            const res = await api.get(
                 "http://localhost:5263/api/stores",
                 {
                     headers: { Authorization: `Bearer ${token}` }

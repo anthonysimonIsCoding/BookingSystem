@@ -30,4 +30,30 @@ public class AuthController : ControllerBase
 		_authService.Register(request);
 		return Ok("Register success");
 	}
+
+    [HttpPost("vendor/login")]
+    public IActionResult VendorLogin(LoginRequest request)
+    {
+        var token = _authService.Login(request.Email, request.Password);
+
+        if (token == null)
+            return Unauthorized("Invalid email or password");
+
+        return Ok(new { token });
+    }
+
+    // AuthController.cs  (thêm vào class)
+    [HttpPost("vendor/register")]
+    public IActionResult VendorRegister(VendorRegisterRequest request)
+    {
+        try
+        {
+            _authService.RegisterVendor(request);
+            return Ok(new { message = "Đăng ký Vendor thành công" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

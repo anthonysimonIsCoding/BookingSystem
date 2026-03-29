@@ -98,23 +98,32 @@ namespace BookingSystem.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("BookingSystem.Entities.BookingService", b =>
+            modelBuilder.Entity("BookingSystem.Entities.BookingServiceItem", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("BookingId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ServiceId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
-                    b.HasKey("BookingId", "ServiceId");
+                    b.Property<Guid>("ServiceOptionId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.HasIndex("ServiceId");
+                    b.HasKey("Id");
 
-                    b.ToTable("BookingServices");
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("ServiceOptionId");
+
+                    b.ToTable("BookingServiceItems");
                 });
 
             modelBuilder.Entity("BookingSystem.Entities.Breed", b =>
@@ -162,6 +171,11 @@ namespace BookingSystem.Migrations
 
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -314,7 +328,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -322,17 +338,82 @@ namespace BookingSystem.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("StoreId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("StoreId");
 
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("BookingSystem.Entities.ServiceOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("OptionGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OptionGroupId");
+
+                    b.ToTable("ServiceOptions");
+                });
+
+            modelBuilder.Entity("BookingSystem.Entities.ServiceOptionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ServiceOptionGroups");
                 });
 
             modelBuilder.Entity("BookingSystem.Entities.Species", b =>
@@ -386,7 +467,15 @@ namespace BookingSystem.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("ReviewCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0);
@@ -400,6 +489,8 @@ namespace BookingSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Stores");
                 });
@@ -415,6 +506,11 @@ namespace BookingSystem.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -580,7 +676,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Capacity")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -589,7 +687,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("time");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
@@ -651,6 +751,8 @@ namespace BookingSystem.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedByUserId");
+
                     b.HasIndex("TimeSlotId");
 
                     b.HasIndex("StoreId", "Date");
@@ -694,8 +796,7 @@ namespace BookingSystem.Migrations
 
                     b.HasIndex("StoreVoucherId");
 
-                    b.HasIndex("UserId", "BookingId")
-                        .IsUnique();
+                    b.HasIndex("UserId", "BookingId");
 
                     b.ToTable("UsedVouchers");
                 });
@@ -750,7 +851,8 @@ namespace BookingSystem.Migrations
 
                     b.HasOne("BookingSystem.Entities.PlatformVoucher", "PlatformVoucher")
                         .WithMany()
-                        .HasForeignKey("PlatformVoucherId");
+                        .HasForeignKey("PlatformVoucherId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BookingSystem.Entities.Store", "Store")
                         .WithMany("Bookings")
@@ -760,7 +862,8 @@ namespace BookingSystem.Migrations
 
                     b.HasOne("BookingSystem.Entities.StoreVoucher", "StoreVoucher")
                         .WithMany()
-                        .HasForeignKey("StoreVoucherId");
+                        .HasForeignKey("StoreVoucherId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BookingSystem.Entities.TimeSlot", "TimeSlot")
                         .WithMany("Bookings")
@@ -787,23 +890,23 @@ namespace BookingSystem.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BookingSystem.Entities.BookingService", b =>
+            modelBuilder.Entity("BookingSystem.Entities.BookingServiceItem", b =>
                 {
                     b.HasOne("BookingSystem.Entities.Booking", "Booking")
-                        .WithMany("BookingServices")
+                        .WithMany("ServiceItems")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BookingSystem.Entities.Service", "Service")
-                        .WithMany("BookingServices")
-                        .HasForeignKey("ServiceId")
+                    b.HasOne("BookingSystem.Entities.ServiceOption", "ServiceOption")
+                        .WithMany("BookingItems")
+                        .HasForeignKey("ServiceOptionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Booking");
 
-                    b.Navigation("Service");
+                    b.Navigation("ServiceOption");
                 });
 
             modelBuilder.Entity("BookingSystem.Entities.Breed", b =>
@@ -881,6 +984,38 @@ namespace BookingSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("BookingSystem.Entities.ServiceOption", b =>
+                {
+                    b.HasOne("BookingSystem.Entities.ServiceOptionGroup", "OptionGroup")
+                        .WithMany("Options")
+                        .HasForeignKey("OptionGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OptionGroup");
+                });
+
+            modelBuilder.Entity("BookingSystem.Entities.ServiceOptionGroup", b =>
+                {
+                    b.HasOne("BookingSystem.Entities.Service", "Service")
+                        .WithMany("OptionGroups")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("BookingSystem.Entities.Store", b =>
+                {
+                    b.HasOne("BookingSystem.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("BookingSystem.Entities.StoreCategoryMapping", b =>
@@ -977,6 +1112,12 @@ namespace BookingSystem.Migrations
 
             modelBuilder.Entity("BookingSystem.Entities.TimeSlotOverride", b =>
                 {
+                    b.HasOne("BookingSystem.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("BookingSystem.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
@@ -1028,7 +1169,7 @@ namespace BookingSystem.Migrations
 
             modelBuilder.Entity("BookingSystem.Entities.Booking", b =>
                 {
-                    b.Navigation("BookingServices");
+                    b.Navigation("ServiceItems");
                 });
 
             modelBuilder.Entity("BookingSystem.Entities.Breed", b =>
@@ -1048,7 +1189,17 @@ namespace BookingSystem.Migrations
 
             modelBuilder.Entity("BookingSystem.Entities.Service", b =>
                 {
-                    b.Navigation("BookingServices");
+                    b.Navigation("OptionGroups");
+                });
+
+            modelBuilder.Entity("BookingSystem.Entities.ServiceOption", b =>
+                {
+                    b.Navigation("BookingItems");
+                });
+
+            modelBuilder.Entity("BookingSystem.Entities.ServiceOptionGroup", b =>
+                {
+                    b.Navigation("Options");
                 });
 
             modelBuilder.Entity("BookingSystem.Entities.Species", b =>
