@@ -1,0 +1,48 @@
+// ================================================
+// BOOKING SYSTEM ENUMS - TẤT CẢ ĐÃ GỘP VÀO 1 FILE
+// ================================================
+
+namespace BookingSystem.Entities.Enums;
+
+public enum ServiceType
+{
+    Single = 0,    // chỉ chọn 1 option
+    Multiple = 1   // chọn nhiều option
+}
+
+public enum BookingStatus : byte
+{
+    Pending = 0,          // mới đặt
+    Received = 1,         // đã nhận pet
+    Caring = 2,           // đang chăm sóc
+    WaitingPickup = 3,    // xong, đợi đón
+    Completed = 4,        // đã đón
+    Cancelled = 5         // bị cancel
+}
+
+public enum StoreStatus
+{
+    Pending = 0,        // Chờ admin duyệt (mặc định khi store mới tạo)
+    Approved = 1,       // Đã duyệt → được bán hàng, hiển thị dịch vụ, cho phép booking
+    Rejected = 2,       // Bị từ chối
+    Suspended = 3       // Tạm khóa (admin có thể khóa sau này)
+}
+
+public enum OptionGroupType
+{
+    SingleChoice = 0,   // trong group chỉ chọn 1
+    MultiChoice = 1     // trong group chọn nhiều
+}
+
+public enum VoucherDiscountType
+{
+    Percent = 1,    // Giảm theo phần trăm
+    Fixed = 2       // Giảm số tiền cố định
+}
+
+public enum UserRole
+{
+    Customer,
+    ServiceProvider,
+    Admin
+}

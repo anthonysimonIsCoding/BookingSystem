@@ -1,10 +1,20 @@
-// src/pages/vendor/StoreManagementPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";   // ← Thêm dòng này
 import VendorSidebar from '../../components/vendor/VendorSidebar';
 import StoreInfoTab from '../../components/vendor/StoreInfoTab';
+import TimeslotTab from '../../components/vendor/TimeslotTab';
+import ServiceTab from '../../components/vendor/ServiceTab';
+import VoucherTab from '../../components/vendor/VoucherTab';
 
 export default function StoreManagementPage() {
-    const [activeTab, setActiveTab] = useState<"info" | "timeslot" | "service">("info");
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Lấy tab từ URL, mặc định là "info"
+    const currentTab = (searchParams.get("tab") as "info" | "timeslot" | "service" | "voucher") || "info";
+
+    const setActiveTab = (tab: "info" | "timeslot" | "service" | "voucher") => {
+        setSearchParams({ tab });   // Cập nhật URL
+    };
 
     return (
         <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -18,25 +28,17 @@ export default function StoreManagementPage() {
 
                     {/* Tab Navigation */}
                     <div style={{ display: "flex", gap: "8px", background: "white", padding: "10px", borderRadius: "12px", width: "fit-content", marginBottom: "30px" }}>
-                        <TabButton active={activeTab === "info"} onClick={() => setActiveTab("info")} label="Thông tin cửa hàng" />
-                        <TabButton active={activeTab === "timeslot"} onClick={() => setActiveTab("timeslot")} label="Quản lý Timeslot" />
-                        <TabButton active={activeTab === "service"} onClick={() => setActiveTab("service")} label="Quản lý Dịch vụ" />
+                        <TabButton active={currentTab === "info"} onClick={() => setActiveTab("info")} label="Thông tin cửa hàng" />
+                        <TabButton active={currentTab === "timeslot"} onClick={() => setActiveTab("timeslot")} label="Quản lý Timeslot" />
+                        <TabButton active={currentTab === "service"} onClick={() => setActiveTab("service")} label="Quản lý Dịch vụ" />
+                        <TabButton active={currentTab === "voucher"} onClick={() => setActiveTab("voucher")} label="Quản lý Voucher" />
                     </div>
 
                     {/* Nội dung theo tab */}
-                    {activeTab === "info" && <StoreInfoTab />}
-                    {activeTab === "timeslot" && (
-                        <div style={{ background: "white", padding: "40px", borderRadius: "20px", textAlign: "center" }}>
-                            <h2>Quản lý Timeslot</h2>
-                            <p style={{ color: "#666" }}>Đang phát triển...</p>
-                        </div>
-                    )}
-                    {activeTab === "service" && (
-                        <div style={{ background: "white", padding: "40px", borderRadius: "20px", textAlign: "center" }}>
-                            <h2>Quản lý Dịch vụ</h2>
-                            <p style={{ color: "#666" }}>Đang phát triển...</p>
-                        </div>
-                    )}
+                    {currentTab === "info" && <StoreInfoTab />}
+                    {currentTab === "timeslot" && <TimeslotTab />}
+                    {currentTab === "service" && <ServiceTab />}
+                    {currentTab === "voucher" && <VoucherTab />}
                 </div>
             </div>
         </div>
@@ -45,10 +47,18 @@ export default function StoreManagementPage() {
 
 function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
     return (
-        <div onClick={onClick} style={{
-            padding: "12px 28px", borderRadius: "10px", cursor: "pointer", fontWeight: "600",
-            background: active ? "#86542B" : "transparent", color: active ? "white" : "#555"
-        }}>
+        <div
+            onClick={onClick}
+            style={{
+                padding: "12px 28px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontWeight: "600",
+                background: active ? "#86542B" : "transparent",
+                color: active ? "white" : "#555",
+                transition: "all 0.2s"
+            }}
+        >
             {label}
         </div>
     );

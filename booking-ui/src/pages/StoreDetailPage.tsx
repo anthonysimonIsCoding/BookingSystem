@@ -1,9 +1,10 @@
+// src/pages/StoreDetailPage.tsx
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from '../utils/axiosInstance';
 import {
     Modal, Button, Form, Select, Input, message, DatePicker, Spin,
-    Checkbox, Divider, Radio, Alert
+    Checkbox, Divider, Radio, Alert, Image
 } from "antd";
 import dayjs from "dayjs";
 import Navbar from '../components/Navbar';
@@ -60,6 +61,7 @@ interface Service {
 
 export default function StoreDetailPage() {
     const { id } = useParams<{ id: string }>();
+
     const [store, setStore] = useState<StoreDetail | null>(null);
     const [slots, setSlots] = useState<TimeSlot[]>([]);
     const [pets, setPets] = useState<Pet[]>([]);
@@ -67,6 +69,7 @@ export default function StoreDetailPage() {
     const [serverTime, setServerTime] = useState<dayjs.Dayjs | null>(null);
     const [platformVouchers, setPlatformVouchers] = useState<any[]>([]);
     const [storeVouchers, setStoreVouchers] = useState<any[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string>(dayjs().format("YYYY-MM-DD"));
@@ -79,9 +82,14 @@ export default function StoreDetailPage() {
     const [subtotal, setSubtotal] = useState(0);
     const [selectedPetHasActiveBooking, setSelectedPetHasActiveBooking] = useState(false);
     const [activeStoreName, setActiveStoreName] = useState<string>("");
+
+    // Modal xem tất cả ảnh
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
     const [form] = Form.useForm();
 
-    // Load data
+    // ==================== LOAD DATA ====================
     useEffect(() => {
         if (!id) return;
         const loadAll = async () => {
@@ -94,11 +102,13 @@ export default function StoreDetailPage() {
                     api.get(`http://localhost:5263/api/services/store/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
                     api.get("http://localhost:5263/api/bookings/server-time", { headers: { Authorization: `Bearer ${token}` } })
                 ]);
+
                 setStore(storeRes.data);
                 setPets(petsRes.data);
                 setServices(servicesRes.data || []);
                 setServerTime(dayjs(timeRes.data.vietnamTime));
-            } catch {
+            } catch (err) {
+                console.error(err);
                 message.error("Lỗi tải dữ liệu cửa hàng");
             } finally {
                 setLoading(false);
@@ -123,9 +133,11 @@ export default function StoreDetailPage() {
         }
     };
 
-    useEffect(() => { loadSlots(selectedDate); }, [selectedDate]);
+    useEffect(() => {
+        loadSlots(selectedDate);
+    }, [selectedDate]);
 
-    // Load voucher còn dùng được
+    // Load voucher
     useEffect(() => {
         if (!isModalOpen || !id) return;
         const loadVouchers = async () => {
@@ -165,7 +177,6 @@ export default function StoreDetailPage() {
         setActiveStoreName("");
     };
 
-    // Reset option khi đổi service
     useEffect(() => {
         setSelectedOptionIds([]);
     }, [selectedServiceId]);
@@ -174,6 +185,7 @@ export default function StoreDetailPage() {
     useEffect(() => {
         const service = services.find(s => s.id === selectedServiceId);
         if (!service) return setSubtotal(0);
+
         const base = service.price;
         const optionsPrice = selectedOptionIds.reduce((sum, id) => {
             const opt = service.optionGroups.flatMap(g => g.options).find(o => o.id === id);
@@ -182,7 +194,6 @@ export default function StoreDetailPage() {
         setSubtotal(base + optionsPrice);
     }, [selectedServiceId, selectedOptionIds, services]);
 
-    // Kiểm tra pet có đơn đang active không
     const checkPetStatus = async (petId: string) => {
         try {
             const token = localStorage.getItem("token");
@@ -190,13 +201,8 @@ export default function StoreDetailPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const latest = res.data?.[0];
-
             const status = Number(latest?.status ?? latest?.Status);
-
-            const hasActive =
-                latest &&
-                status !== 4 &&
-                status !== 5;
+            const hasActive = latest && status !== 4 && status !== 5;
 
             setSelectedPetHasActiveBooking(hasActive);
             if (hasActive && latest.storeName) {
@@ -214,7 +220,9 @@ export default function StoreDetailPage() {
         if (selectedPetHasActiveBooking) {
             return message.error(`Pet này đang được chăm sóc tại ${activeStoreName || "một cửa hàng khác"}. Không thể đặt lịch mới.`);
         }
-        if (!selectedSlotId || !selectedServiceId) return message.error("Vui lòng chọn dịch vụ");
+        if (!selectedSlotId || !selectedServiceId) {
+            return message.error("Vui lòng chọn dịch vụ");
+        }
 
         try {
             const token = localStorage.getItem("token");
@@ -228,6 +236,7 @@ export default function StoreDetailPage() {
                 storeVoucherCode: storeVoucherCode.trim() || undefined,
                 notes: values.notes
             }, { headers: { Authorization: `Bearer ${token}` } });
+
             message.success(`Đặt lịch thành công! Tổng tiền: ${res.data.totalPrice.toLocaleString()}đ`);
             setIsModalOpen(false);
             loadSlots(selectedDate);
@@ -240,42 +249,164 @@ export default function StoreDetailPage() {
     if (!store) return <div>Không tìm thấy cửa hàng</div>;
 
     const allImages = store.images || [];
-    const thumbnail = allImages.find(i => i.isThumbnail || i.order === 0)?.imageUrl || allImages[0]?.imageUrl || "https://picsum.photos/900/500";
-    const smallImages = allImages.filter(i => !i.isThumbnail && i.order !== 0).sort((a, b) => a.order - b.order).slice(0, 2);
+    const thumbnail = allImages.find(i => i.isThumbnail)?.imageUrl || allImages[0]?.imageUrl || "https://picsum.photos/900/500";
+    const otherImages = allImages.filter(i => !i.isThumbnail).sort((a, b) => a.order - b.order);
+
+    // Lấy service đang chọn để render tùy chọn
     const selectedService = services.find(s => s.id === selectedServiceId);
 
     return (
         <div className="min-h-screen bg-gray-100">
             <Navbar />
-            <div style={{ padding: 40, background: "#f6f7fb", minHeight: "100vh" }}>
-                <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12, marginBottom: 32, height: 420 }}>
-                        <img src={thumbnail} alt={store.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 16 }} />
-                        <div style={{ display: "grid", gap: 12 }}>
-                            {smallImages.map((img, idx) => (
-                                <img key={idx} src={img.imageUrl} alt={`Ảnh ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 12 }} />
-                            ))}
-                            {smallImages.length < 2 && (
-                                <div style={{ background: "#f0f0f0", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: "#999", fontSize: 14 }}>
-                                    Ảnh {smallImages.length + 1}
-                                </div>
-                            )}
+            <div style={{ padding: "40px 20px", background: "#f6f7fb", minHeight: "100vh" }}>
+                <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+
+                    {/* ==================== PHẦN ẢNH CỬA HÀNG ==================== */}
+                    <div style={{ marginBottom: 40, position: 'relative' }}>
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "2fr 1fr",
+                            gap: 16,
+                            height: "480px"
+                        }}>
+
+                            {/* Ảnh chính lớn */}
+                            <div style={{
+                                borderRadius: 16,
+                                overflow: "hidden",
+                                position: "relative",
+                                height: "480px",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
+                            }}>
+                                <img
+                                    src={thumbnail}
+                                    alt={store.name}
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover"
+                                    }}
+                                />
+
+                                {/* DẤU NHỎ Ở GÓC PHẢI DƯỚI - Nhấn để xem tất cả ảnh */}
+                                {/*{allImages.length > 1 && (*/}
+                                {/*    <div*/}
+                                {/*        onClick={() => setIsImageModalOpen(true)}*/}
+                                {/*        style={{*/}
+                                {/*            position: "absolute",*/}
+                                {/*            bottom: "12px",*/}
+                                {/*            right: "12px",*/}
+                                {/*            background: "rgba(0, 0, 0, 0.75)",*/}
+                                {/*            color: "white",*/}
+                                {/*            padding: "6px 12px",*/}
+                                {/*            borderRadius: "20px",*/}
+                                {/*            fontSize: "13px",*/}
+                                {/*            fontWeight: "600",*/}
+                                {/*            display: "flex",*/}
+                                {/*            alignItems: "center",*/}
+                                {/*            gap: "6px",*/}
+                                {/*            cursor: "pointer",*/}
+                                {/*            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",*/}
+                                {/*            zIndex: 10*/}
+                                {/*        }}*/}
+                                {/*    >*/}
+                                {/*        <span>📸</span>*/}
+                                {/*        <span>{allImages.length}</span>*/}
+                                {/*    </div>*/}
+                                {/*)}*/}
+                            </div>
+
+                            {/* 2 ảnh nhỏ bên phải */}
+                            <div style={{
+                                display: "grid",
+                                gridTemplateRows: "1fr 1fr",
+                                gap: 12,
+                                height: "479px"
+                            }}>
+                                {otherImages.slice(0, 2).map((img, idx) => (
+                                    <div
+                                        key={idx}
+                                        style={{
+                                            borderRadius: 12,
+                                            overflow: "hidden",
+                                            height: "100%",
+                                            boxShadow: "0 4px 15px rgba(0,0,0,0.08)"
+                                        }}
+                                    >
+                                        <img
+                                            src={img.imageUrl}
+                                            alt={`Ảnh ${idx + 1}`}
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                objectFit: "cover"
+                                            }}
+                                        />
+                                        {allImages.length > 1 && (
+                                            <div
+                                                onClick={() => setIsImageModalOpen(true)}
+                                                style={{
+                                                    position: "absolute",
+                                                    bottom: "12px",
+                                                    right: "12px",
+                                                    background: "rgba(0, 0, 0, 0.75)",
+                                                    color: "white",
+                                                    padding: "6px 12px",
+                                                    borderRadius: "20px",
+                                                    fontSize: "13px",
+                                                    fontWeight: "600",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "6px",
+                                                    cursor: "pointer",
+                                                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                                                    zIndex: 10
+                                                }}
+                                            >
+                                                <span>📸</span>
+                                                <span>{allImages.length}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+
+                                {otherImages.length < 2 && (
+                                    <div style={{
+                                        background: "#f0f0f0",
+                                        borderRadius: 12,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "#999",
+                                        height: "100%"
+                                    }}>
+                                        Ảnh {otherImages.length + 1}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                    <h1 style={{ fontSize: 28, fontWeight: 700 }}>{store.name}</h1>
-                    <p style={{ color: "#666", marginBottom: 24 }}>📍 {store.address} • ⭐ {store.averageRating.toFixed(1)} ({store.reviewCount}+ đánh giá)</p>
-                    <h2>Chọn ngày</h2>
+
+                    {/* Thông tin cửa hàng */}
+                    <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 12 }}>{store.name}</h1>
+                    <p style={{ color: "#555", fontSize: 17, marginBottom: 24 }}>
+                        📍 {store.address} • ⭐ {store.averageRating.toFixed(1)} ({store.reviewCount} đánh giá)
+                    </p>
+
+                    {/* Phần chọn ngày và khung giờ giữ nguyên */}
+                    <h2 style={{ margin: "32px 0 16px" }}>Chọn ngày</h2>
                     <DatePicker
                         value={dayjs(selectedDate)}
                         format="DD/MM/YYYY"
                         disabledDate={(current) => current && (current < dayjs().startOf("day") || current > dayjs().add(14, "day"))}
                         onChange={(d) => d && setSelectedDate(d.format("YYYY-MM-DD"))}
                         allowClear={false}
-                        style={{ marginBottom: 24 }}
+                        style={{ marginBottom: 24, width: 220 }}
                     />
+
                     <h2>Khung giờ</h2>
                     {loadingSlots ? <Spin /> : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px,1fr))", gap: 16 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
                             {slots.map(slot => {
                                 const past = isSlotPast(slot);
                                 const disabled = past || !slot.isAvailable || !!slot.isDisabledByOverride;
@@ -286,7 +417,7 @@ export default function StoreDetailPage() {
                 </div>
             </div>
 
-            {/* ====================== MODAL ====================== */}
+            {/* ====================== MODAL ĐẶT LỊCH ====================== */}
             <Modal title="Đặt lịch" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null} width={950}>
                 <Form form={form} layout="vertical" onFinish={handleSubmit}>
                     <Form.Item
@@ -306,7 +437,6 @@ export default function StoreDetailPage() {
                         </Select>
                     </Form.Item>
 
-                    {/* Alert cảnh báo khi pet đang được chăm sóc */}
                     {selectedPetHasActiveBooking && (
                         <Alert
                             message="Không thể đặt lịch"
@@ -380,6 +510,7 @@ export default function StoreDetailPage() {
                     )}
 
                     <Divider orientation="left">Chọn Voucher</Divider>
+                    {/* Phần voucher giữ nguyên như code cũ của bạn */}
                     {platformVouchers.length > 0 && (
                         <div style={{ marginBottom: 24 }}>
                             <h4>Voucher sàn</h4>
@@ -399,6 +530,7 @@ export default function StoreDetailPage() {
                             </div>
                         </div>
                     )}
+
                     {storeVouchers.length > 0 && (
                         <div style={{ marginBottom: 24 }}>
                             <h4>Voucher của cửa hàng</h4>
@@ -442,6 +574,49 @@ export default function StoreDetailPage() {
                         </Button>
                     </Form.Item>
                 </Form>
+            </Modal>
+
+            {/* ====================== MODAL XEM TẤT CẢ ẢNH ====================== */}
+            <Modal
+                title={`Hình ảnh cửa hàng - ${store?.name}`}
+                open={isImageModalOpen}
+                onCancel={() => setIsImageModalOpen(false)}
+                footer={null}
+                width={1100}
+                centered
+            >
+                <div style={{ textAlign: "center", padding: "20px 0" }}>
+                    <Image
+                        src={allImages[currentImageIndex]?.imageUrl}
+                        alt="store"
+                        style={{ maxHeight: "520px", objectFit: "contain", borderRadius: 12 }}
+                        preview={false}
+                    />
+
+                    <div style={{ marginTop: 24, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+                        {allImages.map((img, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => setCurrentImageIndex(idx)}
+                                style={{
+                                    width: 90,
+                                    height: 70,
+                                    border: currentImageIndex === idx ? "3px solid #86542B" : "2px solid #ddd",
+                                    borderRadius: 8,
+                                    overflow: "hidden",
+                                    cursor: "pointer",
+                                    boxShadow: currentImageIndex === idx ? "0 0 0 3px rgba(134, 84, 43, 0.3)" : "none"
+                                }}
+                            >
+                                <img
+                                    src={img.imageUrl}
+                                    alt=""
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </Modal>
         </div>
     );
