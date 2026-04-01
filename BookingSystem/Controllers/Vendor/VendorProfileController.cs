@@ -20,11 +20,15 @@ public class VendorProfileController : ControllerBase
 {
     private readonly BookingDbContext _context;
     private readonly string _imgbbApiKey;
+    private readonly string _goongApiKey;
+    private readonly string _goongTileKey;
 
     public VendorProfileController(BookingDbContext context)
     {
         _context = context;
         _imgbbApiKey = Environment.GetEnvironmentVariable("IMGBB_API_KEY") ?? "YOUR_KEY_HERE";
+        _goongApiKey = Environment.GetEnvironmentVariable("GOONG_API_KEY") ?? "YOUR_KEY_HERE";
+        _goongTileKey = Environment.GetEnvironmentVariable("GOONG_TILE_KEY") ?? "YOUR_KEY_HERE";
     }
 
     // ====================== LẤY THÔNG TIN CỬA HÀNG ======================
@@ -197,6 +201,71 @@ public class VendorProfileController : ControllerBase
         return Ok(new { message = "Lưu danh sách ảnh thành công" });
     }
 
+    // ====================== PROXY GOONG MAP ======================
+
+    [HttpGet("map/style")]
+    public IActionResult GetMapStyle()
+    {
+        var styleUrl = $"https://tiles.goong.io/assets/goong_map_highlight.json?api_key={_goongTileKey}";
+        return Ok(new { styleUrl });
+    }
+
+    [HttpGet("map/autocomplete")]
+    public async Task<IActionResult> MapAutocomplete([FromQuery] string input)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
+            return BadRequest("Input quá ngắn");
+
+        try
+        {
+            using var client = new HttpClient();
+            var url = $"https://rsapi.goong.io/place/autocomplete?api_key={_goongApiKey}&input={Uri.EscapeDataString(input)}";
+            var response = await client.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, "application/json");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi gọi Goong API", error = ex.Message });
+        }
+    }
+
+    [HttpGet("map/detail")]
+    public async Task<IActionResult> MapPlaceDetail([FromQuery] string place_id)
+    {
+        if (string.IsNullOrWhiteSpace(place_id))
+            return BadRequest("Thiếu place_id");
+
+        try
+        {
+            using var client = new HttpClient();
+            var url = $"https://rsapi.goong.io/place/detail?api_key={_goongApiKey}&place_id={place_id}";
+            var response = await client.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, "application/json");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi gọi Goong API", error = ex.Message });
+        }
+    }
+
+    [HttpGet("map/reverse")]
+    public async Task<IActionResult> MapReverseGeocode([FromQuery] decimal lat, [FromQuery] decimal lng)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            var url = $"https://rsapi.goong.io/v2/geocode/street?api_key={_goongApiKey}&latlng={lat},{lng}";
+            var response = await client.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            return Content(content, "application/json");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi gọi Goong API", error = ex.Message });
+        }
+    }
     // ====================== DANH MỤC & CHỦNG LOÀI ======================
     [HttpGet("categories")]
     public async Task<IActionResult> GetCategoriesAndSpecies()
