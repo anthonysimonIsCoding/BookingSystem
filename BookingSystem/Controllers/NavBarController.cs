@@ -1,8 +1,6 @@
-using BookingSystem.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Threading.Tasks;
+using BookingSystem.Services;
+using BookingSystem.DTOs;
 
 namespace BookingSystem.Controllers;
 
@@ -10,11 +8,11 @@ namespace BookingSystem.Controllers;
 [Route("api/[controller]")]
 public class NavbarController : ControllerBase
 {
-    private readonly BookingDbContext _context;
+    private readonly NavbarService _navbarService;
 
-    public NavbarController(BookingDbContext context)
+    public NavbarController(NavbarService navbarService)
     {
-        _context = context;
+        _navbarService = navbarService;
     }
 
     // GET api/navbar/store-categories
@@ -23,15 +21,7 @@ public class NavbarController : ControllerBase
     {
         try
         {
-            var categories = await _context.StoreCategories
-                .OrderBy(c => c.Name)
-                .Select(c => new StoreCategoryDto
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                })
-                .ToListAsync();
-
+            var categories = await _navbarService.GetStoreCategoriesAsync();
             return Ok(categories);
         }
         catch (Exception ex)
@@ -45,17 +35,10 @@ public class NavbarController : ControllerBase
     }
 
     // DEBUG endpoint (có thể xoá sau)
-    // GET api/navbar/test
     [HttpGet("test")]
     public IActionResult Test()
     {
-        return Ok("Navbar API OK");
+        var result = _navbarService.Test();
+        return Ok(result);
     }
-}
-
-// DTO
-public class StoreCategoryDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = null!;
 }

@@ -1,105 +1,73 @@
-using BookingSystem.Data;
-using BookingSystem.Entities;
+using BookingSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BookingSystem.Controllers;
 
-[Authorize]   // ← Bắt buộc phải login
+[Authorize]
 [ApiController]
 [Route("api/vouchers")]
 public class VoucherController : ControllerBase
 {
-    private readonly BookingDbContext _context;
+    private readonly VoucherService _voucherService;
 
-    public VoucherController(BookingDbContext context)
+    public VoucherController(VoucherService voucherService)
     {
-        _context = context;
+        _voucherService = voucherService;
     }
 
-    // ====================== VOUCHER SÀN - CHỈ NHỮNG CÁI USER CÒN DÙNG ĐƯỢC ======================
+    // ====================== VOUCHER SÀN ======================
     [HttpGet("platform/available")]
     public async Task<IActionResult> GetAvailablePlatformVouchers()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var vouchers = await _context.PlatformVouchers
-            .Where(v => v.IsActive
-                     && v.StartDate <= DateTime.UtcNow
-                     && (v.EndDate == null || v.EndDate >= DateTime.UtcNow))
-            .Select(v => new
-            {
-                v.Id,
-                v.Code,
-                v.Name,
-                v.Description,
-                v.DiscountType,
-                v.DiscountValue,
-                v.MinOrderValue,
-                v.MaxDiscountAmount,
-                v.UsageLimitPerUser
-            })
-            .ToListAsync();
+        if (string.IsNullOrEmpty(userIdStr))
+            return Unauthorized(new { message = "Vui lòng đăng nhập" });
 
-        // Lọc những voucher user chưa dùng quá giới hạn
-        var result = new List<dynamic>();
-        foreach (var v in vouchers)
+        var userId = Guid.Parse(userIdStr);
+
+        try
         {
-            var usedCount = await _context.UsedVouchers
-                .CountAsync(u => u.PlatformVoucherId == v.Id && u.UserId == userId);
-
-            if (!v.UsageLimitPerUser.HasValue || usedCount < v.UsageLimitPerUser.Value)
-            {
-                result.Add(v);
-            }
+            var result = await _voucherService.GetAvailablePlatformVouchersAsync(userId);
+            return Ok(result);
         }
-
-        return Ok(result);
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Lỗi khi lấy voucher sàn",
+                error = ex.Message
+            });
+        }
     }
 
-    // ====================== VOUCHER SHOP - CHỈ NHỮNG CÁI USER CÒN DÙNG ĐƯỢC ======================
+    // ====================== VOUCHER CỦA STORE ======================
     [HttpGet("store/{storeId}/available")]
     public async Task<IActionResult> GetAvailableStoreVouchers(Guid storeId)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var vouchers = await _context.StoreVouchers
-            .Where(v => v.StoreId == storeId
-                     && v.IsActive
-                     && v.StartDate <= DateTime.UtcNow
-                     && (v.EndDate == null || v.EndDate >= DateTime.UtcNow))
-            .Select(v => new
-            {
-                v.Id,
-                v.Code,
-                v.Name,
-                v.Description,
-                v.DiscountType,
-                v.DiscountValue,
-                v.MinOrderValue,
-                v.MaxDiscountAmount,
-                v.UsageLimitPerUser
-            })
-            .ToListAsync();
+        if (string.IsNullOrEmpty(userIdStr))
+            return Unauthorized(new { message = "Vui lòng đăng nhập" });
 
-        var result = new List<dynamic>();
-        foreach (var v in vouchers)
+        var userId = Guid.Parse(userIdStr);
+
+        try
         {
-            var usedCount = await _context.UsedVouchers
-                .CountAsync(u => u.StoreVoucherId == v.Id && u.UserId == userId);
-
-            if (!v.UsageLimitPerUser.HasValue || usedCount < v.UsageLimitPerUser.Value)
-            {
-                result.Add(v);
-            }
+            var result = await _voucherService.GetAvailableStoreVouchersAsync(storeId, userId);
+            return Ok(result);
         }
-
-        return Ok(result);
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Lỗi khi lấy voucher cửa hàng",
+                error = ex.Message
+            });
+        }
     }
 }

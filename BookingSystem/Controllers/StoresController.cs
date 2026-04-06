@@ -1,7 +1,9 @@
-using BookingSystem.Data;
-using BookingSystem.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using BookingSystem.Entities.Enums;
+using BookingSystem.Services;
+using BookingSystem.DTOs;
 
 namespace BookingSystem.Controllers;
 
@@ -9,237 +11,69 @@ namespace BookingSystem.Controllers;
 [Route("api/[controller]")]
 public class StoresController : ControllerBase
 {
-    private readonly BookingDbContext _context;
+    private readonly StoreService _storeService;
 
-    public StoresController(BookingDbContext context)
+    public StoresController(StoreService storeService)
     {
-        _context = context;
+        _storeService = storeService;
     }
 
-    // ===========================
-    // GET STORES (MAIN API)
-    // ===========================
     [HttpGet]
     public async Task<IActionResult> GetStores(
-    string sort = "recommended",
-    double? lat = null,
-    double? lng = null,
-    double radius = 300000,
-
-    Guid? speciesId = null,
-    string? categoryIds = null,
-    decimal? minPrice = null,
-    decimal? maxPrice = null,
-
-    decimal? minRating = null,
-    string? search = null
-)
+        string sort = "recommended",
+        double? lat = null,
+        double? lng = null,
+        double radius = 300000,
+        Guid? speciesId = null,
+        string? categoryIds = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        decimal? minRating = null,
+        string? search = null)
     {
-        IQueryable<Store> query = _context.Stores
-            .Where(s => s.Latitude != null && s.Longitude != null);
-
-        // === PARSE CATEGORY IDS ===
-        List<Guid>? parsedCategoryIds = null;
-        if (!string.IsNullOrWhiteSpace(categoryIds))
+        try
         {
-            parsedCategoryIds = categoryIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(id => Guid.TryParse(id.Trim(), out var g) ? g : Guid.Empty)
-                .Where(g => g != Guid.Empty)
-                .ToList();
+            var result = await _storeService.GetStoresAsync(
+                sort, lat, lng, radius, speciesId, categoryIds,
+                minPrice, maxPrice, minRating, search);
+
+            return Ok(result);
         }
-
-        // FILTERS
-        if (speciesId.HasValue)
+        catch (Exception ex)
         {
-            query = query.Where(s => s.StoreSpecies.Any(ss => ss.SpeciesId == speciesId.Value));
+            return StatusCode(500, new { message = "Lỗi hệ thống", error = ex.Message });
         }
-
-        if (parsedCategoryIds != null && parsedCategoryIds.Any())
-        {
-            query = query.Where(s => s.StoreCategories.Any(sc => parsedCategoryIds.Contains(sc.CategoryId)));
-        }
-
-        if (minRating.HasValue)
-        {
-            query = query.Where(s => s.AverageRating >= minRating.Value);
-        }
-
-        // Price filter
-        if (minPrice.HasValue || maxPrice.HasValue)
-        {
-            query = query.Where(s => s.Services.Any(se =>
-                (!minPrice.HasValue || se.Price >= minPrice.Value) &&
-                (!maxPrice.HasValue || se.Price <= maxPrice.Value)
-            ));
-        }
-
-        // Search
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var searchTerm = search.Trim();
-            query = query.Where(s => EF.Functions.Like(s.Name, $"%{searchTerm}%"));
-        }
-
-        // PROJECTION
-        var projection = query.Select(s => new
-        {
-            s.Id,
-            s.Name,
-            s.Address,
-            s.Latitude,
-            s.Longitude,
-            s.AverageRating,
-            s.ReviewCount,
-            s.TotalCompletedBookings,
-
-            MinPrice = s.Services.Any() ? s.Services.Min(se => se.Price) : 0m,
-
-            Thumbnail = s.Images
-                .Where(i => i.IsThumbnail)
-                .OrderBy(i => i.Order)
-                .Select(i => i.ImageUrl)
-                .FirstOrDefault(),
-
-            CategoryMatchCount = parsedCategoryIds != null && parsedCategoryIds.Any()
-                ? s.StoreCategories.Count(sc => parsedCategoryIds.Contains(sc.CategoryId))
-                : 0
-        });
-
-        var stores = await projection.ToListAsync();
-
-        // Tính distance + score...
-        var result = stores.Select(s =>
-        {
-            double distance = double.MaxValue;
-            if (lat.HasValue && lng.HasValue && s.Latitude.HasValue && s.Longitude.HasValue)
-            {
-                distance = GetDistanceKm(lat.Value, lng.Value, (double)s.Latitude.Value, (double)s.Longitude.Value);
-            }
-
-            var score =
-                (s.AverageRating * 0.5m) +
-                ((decimal)Math.Log(s.ReviewCount + 1) * 0.25m) +
-                ((decimal)Math.Log(s.TotalCompletedBookings + 1) * 0.25m);
-
-            if (distance != double.MaxValue)
-                score += (decimal)(1 / (distance + 1)) * 0.2m;
-
-            return new
-            {
-                s.Id,
-                s.Name,
-                s.Address,
-                s.Latitude,
-                s.Longitude,
-                s.AverageRating,
-                s.ReviewCount,
-                s.TotalCompletedBookings,
-                s.MinPrice,
-                s.Thumbnail,
-                Distance = distance,
-                Score = score,
-                s.CategoryMatchCount
-            };
-        }).AsEnumerable();
-
-        if (lat.HasValue && lng.HasValue)
-            result = result.Where(r => r.Distance <= radius);
-
-        // SORT
-        result = sort switch
-        {
-            "distance" => result.OrderBy(r => r.Distance),
-            "price" => result.OrderBy(r => r.MinPrice),
-            "rating" => result.OrderByDescending(r => r.AverageRating),
-            "booking" => result.OrderByDescending(r => r.TotalCompletedBookings),
-            "category" => result.OrderByDescending(r => r.CategoryMatchCount),
-            _ => result.OrderByDescending(r => r.Score)
-        };
-
-        return Ok(result.ToList());
     }
 
-    // ===========================
-    // GET STORE DETAIL
-    // ===========================
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var store = await _context.Stores
-            .Include(s => s.Images)
-            .Include(s => s.Reviews)
-            .FirstOrDefaultAsync(s => s.Id == id);
-
-        if (store == null)
-            return NotFound("Store not found");
-
-        return Ok(new
+        try
         {
-            store.Id,
-            store.Name,
-            store.Address,
-            store.AverageRating,
-            store.ReviewCount,
-            store.TotalCompletedBookings,
-            Images = store.Images
-                .OrderBy(i => i.Order)
-                .Select(i => new
-                {
-                    i.ImageUrl,
-                    i.IsThumbnail
-                })
-                .ToList()
-        });
+            var store = await _storeService.GetByIdAsync(id);
+
+            if (store == null)
+                return NotFound(new { message = "Store not found" });
+
+            return Ok(store);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống", error = ex.Message });
+        }
     }
 
-    // ===========================
-    // FILTER DATA (REAL DB)
-    // ===========================
     [HttpGet("filters")]
     public async Task<IActionResult> GetFilters()
     {
-        var species = await _context.Species
-            .Select(s => new
-            {
-                s.Id,
-                s.Name
-            })
-            .ToListAsync();
-
-        var categories = await _context.StoreCategories
-            .Select(c => new
-            {
-                c.Id,
-                c.Name
-            })
-            .ToListAsync();
-
-        return Ok(new
+        try
         {
-            species,
-            categories
-        });
-    }
-
-    // ===========================
-    // DISTANCE CALC
-    // ===========================
-    private double GetDistanceKm(double lat1, double lon1, double lat2, double lon2)
-    {
-        var R = 6371.0;
-
-        var dLat = (lat2 - lat1) * Math.PI / 180;
-        var dLon = (lon2 - lon1) * Math.PI / 180;
-
-        var a =
-            Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-            Math.Cos(lat1 * Math.PI / 180) *
-            Math.Cos(lat2 * Math.PI / 180) *
-            Math.Sin(dLon / 2) *
-            Math.Sin(dLon / 2);
-
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-
-        return R * c;
+            var filters = await _storeService.GetFiltersAsync();
+            return Ok(filters);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi lấy filters", error = ex.Message });
+        }
     }
 }

@@ -12,7 +12,12 @@ import OrdersPage from "./pages/vendor/OrdersPage";
 import { AuthProvider } from './contexts/AuthContext';
 import DashboardPage from "./pages/vendor/DashboardPage";
 import StoreManagementPage from "./pages/vendor/StoreManagementPage";
-
+import StorePage from "./pages/admin/StorePage";
+import StoreDetailPageAdmin from "./pages/admin/StoreDetailPageAdmin";
+import UsersPet from "./pages/admin/UsersPet";
+import UserDetailPage from "./pages/admin/UserDetailPage";
+import MasterDataPage from "./pages/admin/MasterDataPage";
+import PlatformVoucherPage from "./pages/admin/PlatformVoucherPage";
 function App() {
     return (
         <AuthProvider>
@@ -32,7 +37,14 @@ function App() {
                     <Route path="/vendor/login" element={<LoginVendorPage />} />
                     <Route path="/vendor/orders" element={<OrdersPage />} />
                     <Route path="/vendor/store" element={<StoreManagementPage />} />
-                    
+
+                    {/* ==================== ADMIN ROUTES ==================== */}
+                    <Route path="/admin" element={<StorePage />} />
+                    <Route path="/admin/stores/:storeId" element={<StoreDetailPageAdmin />} />
+                    <Route path="/admin/users" element={<UsersPet />} />
+                    <Route path="/admin/users/:userId" element={<UserDetailPage />} />
+                    <Route path="/admin/md" element={<MasterDataPage />} />
+                    <Route path="/admin/vouchers" element={<PlatformVoucherPage />} />
             </Routes>
             </BrowserRouter>
         </AuthProvider>

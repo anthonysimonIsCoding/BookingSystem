@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingSystem.Migrations
 {
     [DbContext(typeof(BookingDbContext))]
-    [Migration("20260325100621_InitDatabase")]
+    [Migration("20260406040455_InitDatabase")]
     partial class InitDatabase
     {
         /// <inheritdoc />
@@ -175,6 +175,11 @@ namespace BookingSystem.Migrations
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -326,7 +331,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -360,7 +367,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -388,7 +397,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsRequired")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -459,13 +470,18 @@ namespace BookingSystem.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("ReviewCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("TotalCompletedBookings")
                         .ValueGeneratedOnAdd()
@@ -476,6 +492,8 @@ namespace BookingSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Stores");
                 });
@@ -491,6 +509,11 @@ namespace BookingSystem.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -656,7 +679,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Capacity")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -665,7 +690,9 @@ namespace BookingSystem.Migrations
                         .HasColumnType("time");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
@@ -727,6 +754,8 @@ namespace BookingSystem.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedByUserId");
+
                     b.HasIndex("TimeSlotId");
 
                     b.HasIndex("StoreId", "Date");
@@ -770,8 +799,7 @@ namespace BookingSystem.Migrations
 
                     b.HasIndex("StoreVoucherId");
 
-                    b.HasIndex("UserId", "BookingId")
-                        .IsUnique();
+                    b.HasIndex("UserId", "BookingId");
 
                     b.ToTable("UsedVouchers");
                 });
@@ -826,7 +854,8 @@ namespace BookingSystem.Migrations
 
                     b.HasOne("BookingSystem.Entities.PlatformVoucher", "PlatformVoucher")
                         .WithMany()
-                        .HasForeignKey("PlatformVoucherId");
+                        .HasForeignKey("PlatformVoucherId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BookingSystem.Entities.Store", "Store")
                         .WithMany("Bookings")
@@ -836,7 +865,8 @@ namespace BookingSystem.Migrations
 
                     b.HasOne("BookingSystem.Entities.StoreVoucher", "StoreVoucher")
                         .WithMany()
-                        .HasForeignKey("StoreVoucherId");
+                        .HasForeignKey("StoreVoucherId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BookingSystem.Entities.TimeSlot", "TimeSlot")
                         .WithMany("Bookings")
@@ -981,6 +1011,16 @@ namespace BookingSystem.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("BookingSystem.Entities.Store", b =>
+                {
+                    b.HasOne("BookingSystem.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("BookingSystem.Entities.StoreCategoryMapping", b =>
                 {
                     b.HasOne("BookingSystem.Entities.StoreCategory", "Category")
@@ -1075,6 +1115,12 @@ namespace BookingSystem.Migrations
 
             modelBuilder.Entity("BookingSystem.Entities.TimeSlotOverride", b =>
                 {
+                    b.HasOne("BookingSystem.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("BookingSystem.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")

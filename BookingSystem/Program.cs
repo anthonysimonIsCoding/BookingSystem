@@ -23,6 +23,17 @@ builder.Services.AddDbContext<BookingDbContext>(options =>
 
 // ================= Services =================
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<PetService>();
+builder.Services.AddScoped<StoreService>();
+builder.Services.AddScoped<TimeSlotService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<NavbarService>();
+builder.Services.AddScoped<StoreServiceService>();
+builder.Services.AddScoped<VoucherService>();
+
+builder.Services.AddScoped<VendorOrderService>();
+
 
 // ================= JWT =================
 builder.Services.AddAuthentication(options =>

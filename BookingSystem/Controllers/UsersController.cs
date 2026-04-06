@@ -1,10 +1,8 @@
-using BookingSystem.Data;
-using BookingSystem.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Threading.Tasks;
+using BookingSystem.Services;
+using BookingSystem.DTOs;
 
 namespace BookingSystem.Controllers;
 
@@ -13,65 +11,62 @@ namespace BookingSystem.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-	private readonly BookingDbContext _context;
+    private readonly UserService _userService;
 
-	public UsersController(BookingDbContext context)
-	{
-		_context = context;
-	}
+    public UsersController(UserService userService)
+    {
+        _userService = userService;
+    }
 
-	// GET api/users/me
-	[HttpGet("me")]
-	public async Task<IActionResult> GetProfile()
-	{
-		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    // GET api/users/me
+    [HttpGet("me")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-		if (userId == null)
-			return Unauthorized();
+        if (string.IsNullOrEmpty(userIdStr))
+            return Unauthorized(new { message = "Không tìm thấy thông tin người dùng" });
 
-		var user = await _context.Users
-			.Where(u => u.Id == Guid.Parse(userId))
-			.Select(u => new
-			{
-				u.Id,
-				u.FullName,
-				u.Email,
-				u.PhoneNumber
-			})
-			.FirstOrDefaultAsync();
+        var userId = Guid.Parse(userIdStr);
 
-		if (user == null)
-			return NotFound();
+        try
+        {
+            var user = await _userService.GetProfileAsync(userId);
 
-		return Ok(user);
-	}
+            if (user == null)
+                return NotFound(new { message = "Không tìm thấy người dùng" });
 
-	// PUT api/users/me
-	[HttpPut("me")]
-	public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest request)
-	{
-		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống", error = ex.Message });
+        }
+    }
 
-		if (userId == null)
-			return Unauthorized();
+    // PUT api/users/me
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest request)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-		var user = await _context.Users
-			.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
+        if (string.IsNullOrEmpty(userIdStr))
+            return Unauthorized(new { message = "Không tìm thấy thông tin người dùng" });
 
-		if (user == null)
-			return NotFound();
+        var userId = Guid.Parse(userIdStr);
 
-		user.FullName = request.FullName;
-		user.PhoneNumber = request.PhoneNumber;
-
-		await _context.SaveChangesAsync();
-
-		return Ok(new
-		{
-			user.Id,
-			user.FullName,
-			user.Email,
-			user.PhoneNumber
-		});
-	}
+        try
+        {
+            var result = await _userService.UpdateProfileAsync(userId, request);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống", error = ex.Message });
+        }
+    }
 }
