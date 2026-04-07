@@ -1,24 +1,25 @@
+using BookingSystem.DTOs;
+using BookingSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BookingSystem.Data;
-using BookingSystem.Entities;
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using BookingSystem.Entities;
 
 namespace BookingSystem.Controllers.Admin;
 
-//[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/admin/masterdata")]
+//[Authorize(Roles = "Admin")]   // Bỏ comment khi đã có Auth Admin
 public class AdminMasterDataController : ControllerBase
 {
-    private readonly BookingDbContext _context;
+    private readonly AdminMasterDataService _adminMasterDataService;
 
-    public AdminMasterDataController(BookingDbContext context)
+    public AdminMasterDataController(AdminMasterDataService adminMasterDataService)
     {
-        _context = context;
+        _adminMasterDataService = adminMasterDataService;
     }
 
     #region ==================== STORE CATEGORY ====================
@@ -26,44 +27,54 @@ public class AdminMasterDataController : ControllerBase
     [HttpGet("store-categories")]
     public async Task<IActionResult> GetStoreCategories()
     {
-        var list = await _context.StoreCategories
-            .OrderBy(c => c.Name)
-            .ToListAsync();
+        var list = await _adminMasterDataService.GetStoreCategoriesAsync();
         return Ok(list);
     }
 
     [HttpPost("store-categories")]
     public async Task<IActionResult> CreateStoreCategory([FromBody] StoreCategory category)
     {
-        category.CreatedAt = DateTime.UtcNow;
-        _context.StoreCategories.Add(category);
-        await _context.SaveChangesAsync();
-        return Ok(category);
+        try
+        {
+            var result = await _adminMasterDataService.CreateStoreCategoryAsync(category);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi tạo danh mục", error = ex.Message });
+        }
     }
 
     [HttpPut("store-categories/{id}")]
     public async Task<IActionResult> UpdateStoreCategory(Guid id, [FromBody] StoreCategory category)
     {
-        var existing = await _context.StoreCategories.FindAsync(id);
-        if (existing == null) return NotFound();
-
-        existing.Name = category.Name;
-        existing.Description = category.Description;
-        existing.IsActive = category.IsActive;
-
-        await _context.SaveChangesAsync();
-        return Ok(existing);
+        try
+        {
+            var result = await _adminMasterDataService.UpdateStoreCategoryAsync(id, category);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound("Không tìm thấy danh mục");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi cập nhật", error = ex.Message });
+        }
     }
 
     [HttpDelete("store-categories/{id}")]
     public async Task<IActionResult> DeleteStoreCategory(Guid id)
     {
-        var category = await _context.StoreCategories.FindAsync(id);
-        if (category == null) return NotFound();
-
-        _context.StoreCategories.Remove(category);
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Đã xóa danh mục" });
+        try
+        {
+            await _adminMasterDataService.DeleteStoreCategoryAsync(id);
+            return Ok(new { message = "Đã xóa danh mục" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound("Không tìm thấy danh mục");
+        }
     }
 
     #endregion
@@ -73,42 +84,50 @@ public class AdminMasterDataController : ControllerBase
     [HttpGet("species")]
     public async Task<IActionResult> GetSpecies()
     {
-        var list = await _context.Species
-            .OrderBy(s => s.Name)
-            .ToListAsync();
+        var list = await _adminMasterDataService.GetSpeciesAsync();
         return Ok(list);
     }
 
     [HttpPost("species")]
     public async Task<IActionResult> CreateSpecies([FromBody] Species species)
     {
-        species.CreatedAt = DateTime.UtcNow;
-        _context.Species.Add(species);
-        await _context.SaveChangesAsync();
-        return Ok(species);
+        try
+        {
+            var result = await _adminMasterDataService.CreateSpeciesAsync(species);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi tạo loài", error = ex.Message });
+        }
     }
 
     [HttpPut("species/{id}")]
     public async Task<IActionResult> UpdateSpecies(Guid id, [FromBody] Species species)
     {
-        var existing = await _context.Species.FindAsync(id);
-        if (existing == null) return NotFound();
-
-        existing.Name = species.Name;
-
-        await _context.SaveChangesAsync();
-        return Ok(existing);
+        try
+        {
+            var result = await _adminMasterDataService.UpdateSpeciesAsync(id, species);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound("Không tìm thấy loài");
+        }
     }
 
     [HttpDelete("species/{id}")]
     public async Task<IActionResult> DeleteSpecies(Guid id)
     {
-        var species = await _context.Species.FindAsync(id);
-        if (species == null) return NotFound();
-
-        _context.Species.Remove(species);
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Đã xóa loài" });
+        try
+        {
+            await _adminMasterDataService.DeleteSpeciesAsync(id);
+            return Ok(new { message = "Đã xóa loài" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound("Không tìm thấy loài");
+        }
     }
 
     #endregion
@@ -118,99 +137,51 @@ public class AdminMasterDataController : ControllerBase
     [HttpGet("breeds")]
     public async Task<IActionResult> GetBreeds()
     {
-        var breeds = await _context.Breeds
-            .Include(b => b.Species)
-            .AsNoTracking()
-            .OrderBy(b => b.Species.Name)
-            .ThenBy(b => b.Name)
-            .ToListAsync();
-
-        // Project để tránh cycle
-        var result = breeds.Select(b => new
-        {
-            b.Id,
-            b.Name,
-            b.CreatedAt,
-            Species = new
-            {
-                b.Species.Id,
-                b.Species.Name
-            }
-        });
-
+        var result = await _adminMasterDataService.GetBreedsAsync();
         return Ok(result);
     }
 
     [HttpPost("breeds")]
     public async Task<IActionResult> CreateBreed([FromBody] BreedCreateDto dto)
     {
-        var breed = new Breed
+        try
         {
-            Name = dto.Name,
-            SpeciesId = dto.SpeciesId,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.Breeds.Add(breed);
-        await _context.SaveChangesAsync();
-
-        // Trả về dữ liệu có Species để frontend dễ hiển thị
-        var result = await _context.Breeds
-            .Include(b => b.Species)
-            .FirstAsync(b => b.Id == breed.Id);
-
-        return Ok(new
+            var result = await _adminMasterDataService.CreateBreedAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
         {
-            result.Id,
-            result.Name,
-            result.CreatedAt,
-            Species = new { result.Species.Id, result.Species.Name }
-        });
+            return StatusCode(500, new { message = "Lỗi khi tạo giống", error = ex.Message });
+        }
     }
 
     [HttpPut("breeds/{id}")]
     public async Task<IActionResult> UpdateBreed(Guid id, [FromBody] BreedCreateDto dto)
     {
-        var breed = await _context.Breeds.FindAsync(id);
-        if (breed == null) return NotFound();
-
-        breed.Name = dto.Name;
-        breed.SpeciesId = dto.SpeciesId;
-
-        await _context.SaveChangesAsync();
-
-        var result = await _context.Breeds
-            .Include(b => b.Species)
-            .FirstAsync(b => b.Id == breed.Id);
-
-        return Ok(new
+        try
         {
-            result.Id,
-            result.Name,
-            result.CreatedAt,
-            Species = new { result.Species.Id, result.Species.Name }
-        });
+            var result = await _adminMasterDataService.UpdateBreedAsync(id, dto);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound("Không tìm thấy giống");
+        }
     }
-
-    
 
     [HttpDelete("breeds/{id}")]
     public async Task<IActionResult> DeleteBreed(Guid id)
     {
-        var breed = await _context.Breeds.FindAsync(id);
-        if (breed == null) return NotFound();
-
-        _context.Breeds.Remove(breed);
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Đã xóa giống" });
+        try
+        {
+            await _adminMasterDataService.DeleteBreedAsync(id);
+            return Ok(new { message = "Đã xóa giống" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound("Không tìm thấy giống");
+        }
     }
 
     #endregion
-}
-
-// DTO mới (thêm vào cuối file)
-public class BreedCreateDto
-{
-    public string Name { get; set; } = null!;
-    public Guid SpeciesId { get; set; }
 }

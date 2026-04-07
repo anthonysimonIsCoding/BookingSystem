@@ -33,8 +33,16 @@ builder.Services.AddScoped<StoreServiceService>();
 builder.Services.AddScoped<VoucherService>();
 
 builder.Services.AddScoped<VendorOrderService>();
+builder.Services.AddScoped<VendorDashboardService>();
+builder.Services.AddScoped<VendorProfileService>();
+builder.Services.AddScoped<VendorServiceService>();
+builder.Services.AddScoped<VendorVoucherService>();
+builder.Services.AddScoped<VendorTimeSlotService>();
 
-
+builder.Services.AddScoped<AdminMasterDataService>();
+builder.Services.AddScoped<AdminPlatformVoucherService>();
+builder.Services.AddScoped<AdminStoreService>();
+builder.Services.AddScoped<AdminUserService>();
 // ================= JWT =================
 builder.Services.AddAuthentication(options =>
 {

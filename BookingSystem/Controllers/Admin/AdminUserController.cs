@@ -1,116 +1,87 @@
+using BookingSystem.DTOs;
+using BookingSystem.Entities.Enums;
+using BookingSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BookingSystem.Data;
-using BookingSystem.Entities.Enums;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BookingSystem.Controllers.Admin;
 
-//[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/admin/users")]
+//[Authorize(Roles = "Admin")]
 public class AdminUserController : ControllerBase
 {
-    private readonly BookingDbContext _context;
+    private readonly AdminUserService _adminUserService;
 
-    public AdminUserController(BookingDbContext context)
+    public AdminUserController(AdminUserService adminUserService)
     {
-        _context = context;
+        _adminUserService = adminUserService;
     }
 
-    // ==================== DANH SÁCH NGƯỜI DÙNG (CHỈ CUSTOMER) ====================
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? search,
+        [FromQuery] UserRole? role,
+        [FromQuery] bool? isActive,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        var query = _context.Users
-            .Where(u => u.Role == UserRole.Customer)   // Chỉ lấy Customer
-            .Include(u => u.Pets)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(u => u.FullName.Contains(search) ||
-                                    u.Email.Contains(search) ||
-                                    u.PhoneNumber!.Contains(search));
-        }
-
-        //if (isActive.HasValue)
-        //{
-        //    query = query.Where(u => u.IsActive == isActive.Value);
-        //}
-
-        var totalCount = await query.CountAsync();
-
-        var users = await query
-            .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(u => new
-            {
-                u.Id,
-                u.FullName,
-                u.Email,
-                u.PhoneNumber,
-                u.CreatedAt,
-                PetCount = u.Pets.Count
-            })
-            .ToListAsync();
-
-        return Ok(new
-        {
-            items = users,
-            totalCount,
-            page,
-            pageSize,
-            totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        });
+        var result = await _adminUserService.GetAllAsync(search, role, isActive, page, pageSize);
+        return Ok(result);
     }
 
-    // ==================== CHI TIẾT NGƯỜI DÙNG + DANH SÁCH PET ====================
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var user = await _context.Users
-            .Include(u => u.Pets)
-                .ThenInclude(p => p.Species)
-            .Include(u => u.Pets)
-                .ThenInclude(p => p.Breed)
-            .FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Customer);
-
+        var user = await _adminUserService.GetByIdAsync(id);
         if (user == null)
             return NotFound(new { message = "Không tìm thấy người dùng" });
 
-        var result = new
+        return Ok(user);
+    }
+
+    [HttpPut("{id}/role")]
+    public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateUserRoleRequest request)
+    {
+        try
         {
-            user.Id,
-            user.FullName,
-            user.Email,
-            user.PhoneNumber,
-            user.CreatedAt,
-            user.UpdatedAt,
+            await _adminUserService.UpdateRoleAsync(id, request.Role);
+            return Ok(new { message = "Cập nhật vai trò thành công" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = "Không tìm thấy người dùng" });
+        }
+    }
 
-            Pets = user.Pets.Select(p => new
-            {
-                p.Id,
-                p.Name,
-                Species = p.Species?.Name,
-                Breed = p.Breed?.Name,
-                p.Gender,
-                p.DateOfBirth,
-                p.Color,
-                p.Weight,
-                p.ProfileImageUrl,
-                p.IsActive,
-                p.Notes
-            }).ToList()
-        };
+    [HttpPut("{id}/toggle-active")]
+    public async Task<IActionResult> ToggleActive(Guid id, [FromBody] bool isActive)
+    {
+        try
+        {
+            await _adminUserService.ToggleActiveAsync(id, isActive);
+            return Ok(new { message = $"Người dùng đã được {(isActive ? "kích hoạt" : "vô hiệu hóa")}" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = "Không tìm thấy người dùng" });
+        }
+    }
 
-        return Ok(result);
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            await _adminUserService.DeleteAsync(id);
+            return Ok(new { message = "Đã xóa người dùng" });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = "Không tìm thấy người dùng" });
+        }
     }
 }
